@@ -1,3 +1,28 @@
+##################################################################################
+########################### CUSTOM CUSTOM ########################################
+##################################################################################
+#---------------------------------------------------------------------------------
+
+
+# macOS/Windows system specific files
+.DS_Store
+Thumbs.db
+
+# Keep the "data/" folder structure but ignore its contents
+#data/**
+#!data/**/.gitkeep
+
+# Specific folders to ignore that might be generated
+gensim-data/
+
+
+#---------------------------------------------------------------------------------
+##################################################################################
+########################### CUSTOM CUSTOM ########################################
+##################################################################################
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -169,20 +194,3 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-
-
-##################################################################################
-########################### CUSTOM CUSTOM ########################################
-##################################################################################
-
-
-# macOS/Windows system specific files
-.DS_Store
-Thumbs.db
-
-# Keep the "data/" folder structure but ignore its contents
-data/**
-!data/**/.gitkeep
-
-# Specific folders to ignore that might be generated
-gensim-data/
