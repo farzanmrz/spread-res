@@ -1,0 +1,10 @@
+
+Epoch 0
+Train Loss: 338.9249572753906, Perplexity: 1.0033949995733142
+
+Epoch 1
+Train Loss: 368.2015380859375, Perplexity: 1.0036888023268151
+Model Saved
+
+EARLY STOP Epoch 1, Best: Epoch = 0, Train Loss = 338.9249572753906, Perplexity = 1.0033949995733142
+TRAINING DONE Best: Epoch = 0, Train Loss = 338.9249572753906, Perplexity = 1.0033949995733142

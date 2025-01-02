@@ -1,0 +1,22 @@
+
+Epoch 0
+Train Loss: 1825.8062305939504, Perplexity: 1.0230850055354774
+Model Saved
+
+Epoch 1
+Train Loss: 1671.6333119319036, Perplexity: 1.0211152541428303
+Model Saved
+
+Epoch 2
+Train Loss: 1571.6554037240835, Perplexity: 1.0198399391152646
+Model Saved
+
+Epoch 3
+Train Loss: 1491.295882004958, Perplexity: 1.0188160303347662
+Model Saved
+
+Epoch 4
+Train Loss: 1421.3898710593198, Perplexity: 1.0179261521332583
+Model Saved
+
+Epoch 5

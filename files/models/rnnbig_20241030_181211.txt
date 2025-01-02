@@ -1,0 +1,72 @@
+
+Epoch 0
+Train Loss: 74.03971261244554, Perplexity: 1.0002314008709658
+
+Epoch 1
+Train Loss: 68.90705211345966, Perplexity: 1.0002153577240005
+Model Saved
+
+Epoch 2
+Train Loss: 65.80734825134277, Perplexity: 1.0002056691102774
+
+Epoch 3
+Train Loss: 63.3115601172814, Perplexity: 1.0001978681986967
+Model Saved
+
+Epoch 4
+Train Loss: 61.168567364032455, Perplexity: 1.000191170043677
+
+Epoch 5
+Train Loss: 59.287311847393326, Perplexity: 1.0001852900135975
+Model Saved
+
+Epoch 6
+Train Loss: 57.59795643733098, Perplexity: 1.000180009813689
+
+Epoch 7
+Train Loss: 56.0538209768442, Perplexity: 1.000175183533396
+Model Saved
+
+Epoch 8
+Train Loss: 54.632055869469276, Perplexity: 1.000170739748964
+
+Epoch 9
+Train Loss: 53.310670412503754, Perplexity: 1.0001666097228976
+Model Saved
+
+Epoch 10
+Train Loss: 52.090811215914215, Perplexity: 1.000162797035049
+
+Epoch 11
+Train Loss: 50.949206572312576, Perplexity: 1.0001592289461216
+Model Saved
+
+Epoch 12
+Train Loss: 49.88773360619178, Perplexity: 1.0001559113204261
+
+Epoch 13
+Train Loss: 48.896069306593674, Perplexity: 1.000152811891131
+Model Saved
+
+Epoch 14
+Train Loss: 47.963139020479645, Perplexity: 1.0001498960427282
+
+Epoch 15
+Train Loss: 47.080070348886345, Perplexity: 1.0001471360432863
+Model Saved
+
+Epoch 16
+Train Loss: 46.237183570861816, Perplexity: 1.000144501638015
+
+Epoch 17
+Train Loss: 45.43639791928805, Perplexity: 1.0001419988243765
+Model Saved
+
+Epoch 18
+Train Loss: 44.68765354156494, Perplexity: 1.0001396586686813
+
+Epoch 19
+Train Loss: 43.9571811235868, Perplexity: 1.0001373756261784
+Model Saved
+
+TRAINING DONE Best: Epoch = 19, Train Loss = 43.9571811235868, Perplexity = 1.0001373756261784
