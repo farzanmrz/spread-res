@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 
+
 # Define the base class for RNN-based models with RELU activation
 class Rnn2d(nn.Module):
     """

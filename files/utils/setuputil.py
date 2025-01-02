@@ -21,74 +21,87 @@ from classes.BertLoader import BertLoader
 
 # Simple setup display func
 def display_simple_config(config):
-   """
-   Display the configuration with non-serializable objects replaced by string placeholders.
-   Parameters:
-   - config: The configuration dictionary.
-   """
-   # Create a deep copy of the config to avoid modifying the original  
-   config_serializable = copy.deepcopy(config)
+    """
+    Display the configuration with non-serializable objects replaced by string placeholders.
+    Parameters:
+    - config: The configuration dictionary.
+    """
+    # Create a deep copy of the config to avoid modifying the original  
+    config_serializable = copy.deepcopy(config)
 
-   # Replace non-serializable objects with string representations
-   config_serializable["DEVICE"] = str(config_serializable["DEVICE"])
-   config_serializable["vocab"] = "<Vocab Object>" 
-   config_serializable["wvs"] = "<Embedding Tensor>"
-   config_serializable["train_loader"] = "<Train SpreadsheetDataLoader Object>"
-   config_serializable["val_loader"] = "<Validation SpreadsheetDataLoader Object>"
-   config_serializable["test_loader"] = "<Test SpreadsheetDataLoader Object>"
+    # Replace non-serializable objects with string representations
+    config_serializable["DEVICE"] = str(config_serializable["DEVICE"])
+    config_serializable["vocab"] = "<Vocab Object>" 
+    config_serializable["wvs"] = "<Embedding Tensor>"
+    config_serializable["train_loader"] = "<Train SpreadsheetDataLoader Object>"
+    config_serializable["val_loader"] = "<Validation SpreadsheetDataLoader Object>"
+    config_serializable["test_loader"] = "<Test SpreadsheetDataLoader Object>"
 
-   # Create ordered dictionary for better display
-   ordered_config = {
-       # Environment and Model Info
-       "env": config_serializable["env"],
-       "approach": config_serializable["approach"],
-       "model_name": config_serializable["model_name"],
+    # Create ordered dictionary for better display
+    ordered_config = {
+        # Environment and Model Info
+        "env": config_serializable["env"],
+        "approach": config_serializable["approach"],
+        "model_name": config_serializable["model_name"],
 
-       # System Configuration
-       "DEVICE": config_serializable["DEVICE"],
-       "THREADS": config_serializable["THREADS"], 
-       "seed": config_serializable["seed"],
+        # System Configuration
+        "DEVICE": config_serializable["DEVICE"],
+        "THREADS": config_serializable["THREADS"], 
+        "seed": config_serializable["seed"],
 
-       # Data Configuration
-       "data_dir": config_serializable["data_dir"],
-       "data_ds": config_serializable["data_ds"],
+        # Data Configuration
+        "data_dir": config_serializable["data_dir"],
+        "data_ds": config_serializable["data_ds"],
 
-       # Data Directories  
-       "train_dir": config_serializable["train_dir"],
-       "val_dir": config_serializable["val_dir"],
-       "test_dir": config_serializable["test_dir"],
+        # Data Directories  
+        "train_dir": config_serializable["train_dir"],
+        "val_dir": config_serializable["val_dir"],
+        "test_dir": config_serializable["test_dir"],
 
-       # Model Parameters
-       "rows": config_serializable["rows"],
-       "cols": config_serializable["cols"],
-       "tokens": config_serializable["tokens"],
+        # Model Parameters
+        "rows": config_serializable["rows"],
+        "cols": config_serializable["cols"],
+        "tokens": config_serializable["tokens"],
 
-       # Vocabulary Configuration
-       "vocab_size": config_serializable["vocab_size"],
-       "vocab_space": config_serializable["vocab_space"], 
-       "vocab_case": config_serializable["vocab_case"],
-       "vocab": config_serializable["vocab"],
-       "wvs": config_serializable["wvs"],
+        # Vocabulary Configuration
+        "vocab_size": config_serializable["vocab_size"],
+        "vocab_space": config_serializable["vocab_space"], 
+        "vocab_case": config_serializable["vocab_case"],
+        "vocab": config_serializable["vocab"],
+        "wvs": config_serializable["wvs"],
+    }
 
-       # Data Loaders
-       "train_loader": config_serializable["train_loader"],
-       "val_loader": config_serializable["val_loader"],
-       "test_loader": config_serializable["test_loader"],
+    # Add RNN-specific parameters if the approach is rnn
+    if config_serializable["approach"] == "rnn":
+        ordered_config.update({
+            "hidden_dim": config_serializable["hidden_dim"],
+            "rnn_layers": config_serializable["rnn_layers"],
+            "dropout_rate": config_serializable["dropout_rate"],
+            "nonlinearity": config_serializable["nonlinearity"],
+        })
 
-       # Training Configuration
-       "batch": config_serializable["batch"],
-       "lr": config_serializable["lr"],
-       "mu": config_serializable["mu"],
-       "epochs": config_serializable["epochs"], 
-       "patience": config_serializable["patience"],
-       "save_int": config_serializable["save_int"],
-       "save_dir": config_serializable["save_dir"],
-       "save_name": config_serializable["save_name"]
-   }
+    # Add Data Loaders
+    ordered_config.update({
+        # Data Loaders
+        "train_loader": config_serializable["train_loader"],
+        "val_loader": config_serializable["val_loader"],
+        "test_loader": config_serializable["test_loader"],
 
-   # Pretty-print the configuration  
-   print("\nFinal configuration:")
-   print(json.dumps(ordered_config, indent=2))
+        # Training Configuration
+        "batch": config_serializable["batch"],
+        "lr": config_serializable["lr"],
+        "mu": config_serializable["mu"],
+        "epochs": config_serializable["epochs"], 
+        "patience": config_serializable["patience"],
+        "save_int": config_serializable["save_int"],
+        "save_dir": config_serializable["save_dir"],
+        "save_name": config_serializable["save_name"]
+    })
+
+    # Pretty-print the configuration  
+    print("\nFinal configuration:")
+    print(json.dumps(ordered_config, indent=2))
+
     
     
 # Define the simple_setup function
@@ -106,7 +119,7 @@ def setup_simple_config(setup_config):
     config["env"] = setup_config["env"]
     
     # Validate and set approach
-    valid_approaches = ["simple", "saffu", "bert"]
+    valid_approaches = ["simple", "saffu", "bert", "rnn"]
     if setup_config["approach"] not in valid_approaches:
         raise ValueError(f"ERR: approach must be one of {valid_approaches}")
     config["approach"] = setup_config["approach"]
@@ -204,6 +217,15 @@ def setup_simple_config(setup_config):
     config["vocab_size"] = config["wvs"].shape[0]  
     config["vocab_space"] = vocab_space
     config["vocab_case"] = vocab_case
+    
+    ######## RNN-SPECIFIC PARAMETERS ########
+
+    if setup_config["approach"] == "rnn":
+        # Validate and set RNN parameters
+        config["hidden_dim"] = setup_config.get("hidden_dim", 128)  # Default to 128
+        config["rnn_layers"] = setup_config.get("rnn_layers", 2)  # Default to 2 layers
+        config["dropout_rate"] = setup_config.get("dropout_rate", 0.05)  # Default to 0.05
+        config["nonlinearity"] = setup_config.get("nonlinearity", "relu")  # Default to "relu"
 
     ######## DATA_DS ########
 
@@ -255,25 +277,42 @@ def setup_simple_config(setup_config):
     config["save_dir"] = setup_config["save_dir"]
 
     ######## SAVE NAME ########
-    
+
+    # Map environment to its abbreviation
+    env_map = {"gcp": "g", "local": "l", "bvm": "b", "colab": "c"}
+    env_abbreviation = env_map[config["env"]]
+
+    # Get the first 3 characters of the approach
+    approach_prefix = config["approach"][:3]
+
+    # Combine environment, approach, and seed
+    env_approach_seed = f"{env_abbreviation}{approach_prefix}{config['seed']}"
+
     # Create vocab config string for name
     case_prefix = {"both": "b", "upper": "u", "lower": "l"}[config["vocab_case"]]
     space_str = "Sp" if config["vocab_space"] else "Nsp"
     vocab_str = f"{case_prefix}{space_str}{config['vocab_size']//1000}k"
-    
+
+    # Generate RNN-specific suffix if applicable
+    rnn_specific = (
+        f"rnn{config['rnn_layers']}hid{config['hidden_dim']}"  # RNN layers and hidden_dim
+        if config["approach"] == "rnn"
+        else ""
+    )
+
     # Generate model name
-    save_name = "__".join([
-        "_".join([config['env'], config['approach'], config['model_name'], f"s{config['seed']}"]),  # Added seed here
-        "_".join([config['data_ds'], f"{config['rows']}x{config['cols']}x{config['tokens']}"]),
+    save_name = "_".join([
+        env_approach_seed,  # Combined environment, approach, and seed
+        f"{config['model_name']}_{config['data_ds']}_{config['rows']}x{config['cols']}x{config['tokens']}",
         vocab_str,
-        f"b{config['batch']}" + \
-        f"lr{config['lr']:.0e}".replace('e-0', 'e-') + \
-        f"e{config['epochs']}" + \
-        f"p{config['patience']}"
+        f"bsz{config['batch']}lr{config['lr']:.0e}".replace('e-0', 'e-') + 
+        f"ep{config['epochs']}pa{config['patience']}" +
+        (f"{rnn_specific}" if rnn_specific else "")
     ])
+
     config["save_name"] = save_name
 
-    
+
     return config
 
 

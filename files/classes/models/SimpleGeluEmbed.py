@@ -135,3 +135,132 @@ class SimpleGeluEmbedAvg(SimpleGeluEmbed):
         
         # Return the average of embeddings along the token dimension
         return embeddings.mean(dim=1)
+
+    
+    
+############# CHECKER CODE FOR POSITION BASED EMBEDDING ###########
+###################################################################
+
+# import torch
+# import torch.nn as nn
+# from tqdm import tqdm
+
+
+# class PosGeluAvgEmbed(nn.Module):
+
+#     # Initialize constructor
+#     def __init__(self, embedding_matrix, dropout_rate=0.05):
+
+#         super(PosGeluAvgEmbed, self).__init__()
+
+#         # Get the number of words in the vocabulary
+#         self.vocab_size = embedding_matrix.shape[0]
+
+#         # Get the embedding dimension for each word
+#         self.embedding_dim = embedding_matrix.shape[1]
+
+#         # Define an embedding layer initialized with pre-trained embeddings
+#         self._embed = nn.Embedding.from_pretrained(embedding_matrix, freeze=False)
+
+#         # Define a dropout layer to prevent overfitting
+#         self._drop = nn.Dropout(dropout_rate)
+
+#         # Define a GELU activation layer for non-linearity
+#         self._non_linear = nn.GELU()
+
+#         # Define a linear layer to predict logits for bold/non-bold classification
+#         self._pred = nn.Linear(self.embedding_dim, 1)
+
+
+
+#     # def pos_embed(self, index):
+#     #     """
+#     #     Generate sinusoidal positional embeddings for a given row/column index.
+
+#     #     Args:
+#     #         index (int): Row or column index for which positional embedding is calculated.
+
+#     #     Returns:
+#     #         torch.Tensor: Positional embedding vector of size (embedding_dim,).
+#     #     """
+#     #     # Get positional dimension k
+#     #     k = torch.arange(0, self.embedding_dim, dtype=torch.float32, device=index.device)
+
+#     #     # Get the denominator
+#     #     denom = 10000 ** (k / self.embedding_dim)
+
+#     #     # Apply sin and get final position embedding
+#     #     pos_embedding = torch.sin(index.float() / denom)
+
+#     #     # Return the final position embedding
+#     #     return pos_embedding
+
+#     def pos_embed(self, index, axis, device):
+#         """
+#         Calculate sinusoidal positional embeddings, alternating sine and cosine for rows and columns.
+
+#         Args:
+#             index (int): Row or column index for which positional embedding is calculated.
+#             axis (str): 'row' or 'col' to determine which function to apply.
+#             device (torch.device): Device on which to calculate the embeddings.
+
+#         Returns:
+#             torch.Tensor: Positional embedding vector of size (embedding_dim,).
+#         """
+#         # Get positional dimension k
+#         k = torch.arange(0, self.embedding_dim, dtype=torch.float32, device=device)
+
+#         # Get the denominator
+#         denom = 10000 ** (k / self.embedding_dim)
+
+#         # Apply sine for rows and cosine for columns
+#         if axis == 'row':
+#             pos_embedding = torch.sin(index / denom)  # Use sine for rows
+#         elif axis == 'col':
+#             pos_embedding = torch.cos(index / denom)  # Use cosine for columns
+#         else:
+#             raise ValueError("Invalid axis value. Must be 'row' or 'col'.")
+
+#         return pos_embedding
+
+
+
+#     def forward(self, x):
+
+#         # Initialize an empty tensor to store predictions for all cells
+#         S_cube = torch.zeros((x.shape[0], x.shape[1], x.shape[2]), device=x.device)
+
+#         # Iterate over all cells in the 2D grid (100x100 cells)
+#         for cell in range(x.shape[1] * x.shape[2]):
+
+#             # Calculate the row and column indices for the current cell
+#             row = cell // x.shape[2]
+#             col = cell % x.shape[2]
+
+#             # Calculate the positional encodings for row/col
+#             row_pos_embed = self.pos_embed(row, axis='row', device=x.device)  # Sine for rows
+#             col_pos_embed = self.pos_embed(col, axis='col', device=x.device)
+
+#             # Extract token embeddings for the current cell
+#             token_embeddings = self._embed(x[:, row, col, :])  # Shape: batch x seq_len x embed_dim
+
+#             # Compute the average of token embeddings for the current cell
+#             averaged_embedding = token_embeddings.mean(dim=1)  # Shape: batch x embed_dim
+
+#             # Now compute the enriched embedding with the position embeddings added
+#             enriched_embedding = averaged_embedding + row_pos_embed + col_pos_embed
+
+#             # Apply dropout for regularization
+#             dropped_embedding = self._drop(enriched_embedding)  # Shape: batch x embed_dim
+
+#             # Apply GELU activation for non-linearity
+#             activated_embedding = self._non_linear(dropped_embedding)  # Shape: batch x embed_dim
+
+#             # Predict logits for bold/non-bold classification
+#             logits = self._pred(activated_embedding)  # Shape: batch x 1
+
+#             # Store the logits in the S_cube tensor
+#             S_cube[:, row, col] = logits.view(-1)
+
+#         # Return the final predictions for all cells
+#         return S_cube
