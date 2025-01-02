@@ -97,17 +97,59 @@ def to_gpu(x, device=2, seed=0):
     return x
 
 
-def get_fileList(directory):
+# def get_fileList(directory):
 
+#     """
+#     Retrieves and classifies files in a directory into valid and invalid files based on extensions.
+
+#     Args:
+#         directory (str): Path to the directory to scan for files.
+
+#     Returns:
+#         tuple: A tuple containing two lists:
+#             - valid_files (list): List of file paths with supported extensions (.xls, .xlsx, .csv).
+#             - invalid_files (list): List of file paths with unsupported extensions.
+
+#     Raises:
+#         ValueError: If the specified directory does not exist.
+#     """
+
+#     # Ensure the provided directory exists
+#     if not os.path.isdir(directory):
+#         raise ValueError(f"{directory} NOT FOUND")
+
+#     # Files with supported extensions
+#     valid_files = [
+#         os.path.join(directory, file_name)
+#         for file_name in os.listdir(directory)
+#         if file_name.endswith((".xls", ".xlsx", ".csv"))
+#         and os.path.isfile(os.path.join(directory, file_name))
+#     ]
+
+#     # Files with unsupported extensions
+#     invalid_files = [
+#         os.path.join(directory, file_name)
+#         for file_name in os.listdir(directory)
+#         if not file_name.endswith((".xls", ".xlsx", ".csv"))
+#         and os.path.isfile(os.path.join(directory, file_name))
+#     ]
+
+#     # Return both lists
+#     return valid_files, invalid_files
+
+def get_fileList(directory, num_files=None, seed=42):
     """
-    Retrieves and classifies files in a directory into valid and invalid files based on extensions.
+    Retrieves and classifies files in a directory into valid and invalid files based on extensions,
+    shuffles the valid files using a seed, and selects a subset if `num_files` is provided.
 
     Args:
         directory (str): Path to the directory to scan for files.
+        num_files (int, optional): Number of files to select from the valid files. Defaults to None (select all files).
+        seed (int, optional): Random seed for consistent shuffling. Defaults to 42.
 
     Returns:
         tuple: A tuple containing two lists:
-            - valid_files (list): List of file paths with supported extensions (.xls, .xlsx, .csv).
+            - selected_files (list): List of selected valid file paths.
             - invalid_files (list): List of file paths with unsupported extensions.
 
     Raises:
@@ -134,8 +176,16 @@ def get_fileList(directory):
         and os.path.isfile(os.path.join(directory, file_name))
     ]
 
-    # Return both lists
-    return valid_files, invalid_files
+    # Shuffle the valid files using the seed
+    random.seed(seed)
+    random.shuffle(valid_files)
+
+    # If num_files is provided, select the first `num_files` files
+    selected_files = valid_files[:num_files] if num_files is not None else valid_files
+
+    # Return the selected valid files and invalid files
+    return selected_files, invalid_files
+
 
 def tokenize(text, space=True, case="lower"):
 

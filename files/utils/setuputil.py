@@ -144,27 +144,16 @@ def setup_simple_config(setup_config):
 
     ######## THREADS ########
 
-    # # Validate and set THREADS
-    # remaining_threads = os.cpu_count() - (os.cpu_count() // setup_config["threads"])
-    # if remaining_threads >= 4:
-    #     config["THREADS"] = setup_config["threads"]
-    # else:
-    #     raise ValueError(f"ERR: {remaining_threads} threads remaining leave at least 4")
-    # Validate thread input type
+    # Validate if int
     if not isinstance(setup_config["threads"], (int, float)):
         raise ValueError("ERR: threads must be a number")
     
-    # Convert to integer and validate minimum value
-    requested_threads = int(setup_config["threads"])  # Convert float to int
-    total_threads = os.cpu_count()
-    remaining_threads = total_threads - requested_threads
-    
     # Check if we're leaving enough threads free
-    if remaining_threads < 4:
-        raise ValueError(f"ERR: Using {requested_threads} threads would only leave {remaining_threads} threads free. Must leave at least 4 threads.")
+    if os.cpu_count() - int(setup_config["threads"]) < 4:
+        raise ValueError(f"ERR: Using {int(setup_config["threads"])} threads would only leave {os.cpu_count() - int(setup_config["threads"])} threads free. Must leave at least 4 threads.")
     
     # Set threads to max of requested (as int) or 1
-    config["THREADS"] = max(1, requested_threads)
+    config["THREADS"] = max(1, int(setup_config["threads"]))
 
     ######## SEED ########
 
