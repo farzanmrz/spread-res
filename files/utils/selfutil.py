@@ -237,8 +237,6 @@ def get_vocab(
     ec = len(invalid_files)
     vocab = Vocab(target=False, space=space, case=case)
 
-    # Define the number of jobs
-    n_jobs = max(1, os.cpu_count() // threads)
 
     # Helper function for token aggregation from a single file
     def process_file(file_path):
@@ -260,7 +258,7 @@ def get_vocab(
 
     # Process files in parallel and combine results
     aggregated_token_counts = sum(
-        Parallel(n_jobs=n_jobs, timeout=99999)(
+        Parallel(n_jobs=threads, timeout=99999)(
             delayed(process_file)(file_path)
             for file_path in tqdm(file_paths, desc="Getting Vocab")
         ),

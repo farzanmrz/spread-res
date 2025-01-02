@@ -9,7 +9,7 @@ import sys
 from sklearn.metrics import precision_score, recall_score, f1_score
 
 
-def train_model(model, train_data, val_data, DEVICE, batch_size=8, lr=1.4e-5, mu=0.25, max_epochs=4, patience=3, save_int=2, save_dir='../models/', save_name='rnn_'):
+def train_model(model, train_data, val_data, DEVICE, batch_size=8, lr=1.4e-5, mu=0.25, max_epochs=4, patience=3, save_int=2, save_dir='../models/', save_name='rnn_', config=None):
     """
     Train the model for 1 batch, print the length of the train_loader, the training loss, and average training loss.
     """
@@ -25,6 +25,27 @@ def train_model(model, train_data, val_data, DEVICE, batch_size=8, lr=1.4e-5, mu
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     model_path = os.path.join(save_dir, f"{save_name}_{timestamp}.pth")
     log_file = os.path.join(save_dir, f"{save_name}_{timestamp}.txt")
+    
+    # If config exists and save_int > 0, write configuration to log file
+    if config is not None and save_int > 0:
+        import json
+        import copy
+        
+        # Create a deep copy of the config to avoid modifying the original
+        config_serializable = copy.deepcopy(config)
+        
+        # Remove non-serializable objects
+        del config_serializable["DEVICE"] 
+        del config_serializable["vocab"]
+        del config_serializable["wvs"]
+        del config_serializable["train_loader"]
+        del config_serializable["val_loader"]
+        del config_serializable["test_loader"]
+        
+        with open(log_file, 'w') as log:
+            log.write("\nFinal configuration:\n")
+            log.write(json.dumps(config_serializable, indent=2))
+            log.write("\n\n" + "="*80 + "\n\n")  
 
     # Setup optimizer
     opt = torch.optim.Adagrad(model.parameters(), lr=lr)
