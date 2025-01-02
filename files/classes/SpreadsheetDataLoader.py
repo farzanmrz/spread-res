@@ -56,7 +56,7 @@ class SpreadsheetDataLoader(torch.utils.data.Dataset):
         self.failed_files = [ ]
 
         # Parallel processing of files using joblib
-        results = Parallel(n_jobs = max(1,os.cpu_count()//threads), timeout=99999)(delayed(self._featurize)(file) for file in tqdm(file_paths, desc = "Processing files"))
+        results = Parallel(n_jobs = threads, timeout=99999)(delayed(self._featurize)(file) for file in tqdm(file_paths, desc = "Processing files"))
 
 
         # Loop through all 3 vars of results

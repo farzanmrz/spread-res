@@ -95,7 +95,7 @@ def infer_one(trained_model, infer_loader, loc=0, threshold=0.5, condition = '>'
         # Print unique sigmoid values with example locations
         for value, location in sorted_sigmoids:
             row, col = location
-            print(f"({row},{col}): {value:.6f}")
+            print(f"({row},{col}): {value:.20f}")
     else:
         print("No bold cells in the actual data.")
 
@@ -233,3 +233,6 @@ def infer_full(
     plt.xlabel("Predicted"), plt.ylabel("Actual"), plt.title(
         "BOLD Cell Prediction CM"
     ), plt.show()
+    
+    
+
