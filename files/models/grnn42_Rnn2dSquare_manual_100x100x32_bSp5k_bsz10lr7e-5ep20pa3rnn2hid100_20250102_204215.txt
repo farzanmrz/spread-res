@@ -1,0 +1,123 @@
+
+Final configuration:
+{
+  "env": "gcp",
+  "approach": "rnn",
+  "model_name": "Rnn2dSquare",
+  "data_dir": "../../data/farzan",
+  "data_ds": "manual",
+  "seed": 42,
+  "THREADS": 12,
+  "vocab_size": 5597,
+  "vocab_space": true,
+  "vocab_case": "both",
+  "hidden_dim": 100,
+  "rnn_layers": 2,
+  "dropout_rate": 0.05,
+  "nonlinearity": "relu",
+  "train_dir": "../../data/farzan/manual_train",
+  "val_dir": "../../data/farzan/manual_val",
+  "test_dir": "../../data/farzan/manual_test",
+  "rows": 100,
+  "cols": 100,
+  "tokens": 32,
+  "batch": 10,
+  "lr": 7e-05,
+  "mu": 0.25,
+  "epochs": 20,
+  "patience": 3,
+  "save_int": 5,
+  "save_dir": "../models/",
+  "save_name": "grnn42_Rnn2dSquare_manual_100x100x32_bSp5k_bsz10lr7e-5ep20pa3rnn2hid100"
+}
+
+================================================================================
+
+
+Epoch 0
+Train Loss: 867.3282623291016, Perplexity: 1.0353019574469082
+Val Loss: 724.2340087890625, Perplexity: 1.029393053750664
+
+Epoch 1
+Train Loss: 708.0849761962891, Perplexity: 1.0287283203907605
+Val Loss: 604.8032836914062, Perplexity: 1.0244871350765592
+
+Epoch 2
+Train Loss: 603.2823486328125, Perplexity: 1.0244248098363986
+Val Loss: 512.0492553710938, Perplexity: 1.0206931651988136
+
+Epoch 3
+Train Loss: 515.9758834838867, Perplexity: 1.0208534930885242
+Val Loss: 434.2115783691406, Perplexity: 1.017520171934107
+
+Epoch 4
+Train Loss: 442.37928009033203, Perplexity: 1.017852658294524
+Val Loss: 366.84466552734375, Perplexity: 1.01478197515878
+Model Saved
+
+Epoch 5
+Train Loss: 379.4359817504883, Perplexity: 1.0152932015180993
+Val Loss: 307.9031982421875, Perplexity: 1.0123922837604478
+
+Epoch 6
+Train Loss: 319.5217742919922, Perplexity: 1.0128628953783592
+Val Loss: 254.3817138671875, Perplexity: 1.0102272126319203
+
+Epoch 7
+Train Loss: 265.7199935913086, Perplexity: 1.0106854860935885
+Val Loss: 204.81771850585938, Perplexity: 1.008226360816261
+
+Epoch 8
+Train Loss: 220.76092910766602, Perplexity: 1.0088695404896337
+Val Loss: 158.1082305908203, Perplexity: 1.006344370019619
+
+Epoch 9
+Train Loss: 184.561767578125, Perplexity: 1.0074097883224309
+Val Loss: 112.87870025634766, Perplexity: 1.0045253566497545
+Model Saved
+
+Epoch 10
+Train Loss: 145.82688522338867, Perplexity: 1.0058501209197654
+Val Loss: 69.9869155883789, Perplexity: 1.002803398817394
+
+Epoch 11
+Train Loss: 123.00397300720215, Perplexity: 1.0049322827778018
+Val Loss: 30.2694034576416, Perplexity: 1.0012115094236524
+
+Epoch 12
+Train Loss: 107.39166831970215, Perplexity: 1.0043049063344736
+Val Loss: 24.613985061645508, Perplexity: 1.0009850442401784
+
+Epoch 13
+Train Loss: 104.26655960083008, Perplexity: 1.0041793717000569
+Val Loss: 25.39457893371582, Perplexity: 1.0010162992397877
+
+Epoch 14
+Train Loss: 101.33382606506348, Perplexity: 1.0040615789885123
+Val Loss: 21.497243881225586, Perplexity: 1.000860259566436
+Model Saved
+
+Epoch 15
+Train Loss: 100.39912796020508, Perplexity: 1.004024039912069
+Val Loss: 19.898284912109375, Perplexity: 1.000796248233933
+
+Epoch 16
+Train Loss: 98.1135082244873, Perplexity: 1.0039322514215745
+Val Loss: 18.82142448425293, Perplexity: 1.0007531404473182
+
+Epoch 17
+Train Loss: 97.69081687927246, Perplexity: 1.0039152774261157
+Val Loss: 17.838836669921875, Perplexity: 1.0007138081066347
+
+Epoch 18
+Train Loss: 95.96340370178223, Perplexity: 1.0038459127633996
+Val Loss: 16.758386611938477, Perplexity: 1.0006705601895058
+
+Epoch 19
+Train Loss: 96.82646751403809, Perplexity: 1.0038805686848171
+Val Loss: 15.730669975280762, Perplexity: 1.0006294248037213
+Model Saved
+
+TRAINING DONE at epoch 19, best epoch 19
+Train Loss = 96.82646751403809, Perplexity = 1.0038805686848171
+Val Loss = 15.730669975280762, Perplexity = 1.0006294248037213
