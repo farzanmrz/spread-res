@@ -8,13 +8,14 @@ from transformers import AutoTokenizer
 
 # Reload the selfutil module and import required functions
 from utils import selfutil
-from classes import SpreadsheetDataLoader, BertLoader
+from classes import Loader
 importlib.reload(selfutil)
-importlib.reload(SpreadsheetDataLoader)
-importlib.reload(BertLoader)
+importlib.reload(Loader)
+
+#Import utils and classes needed
 from utils.selfutil import set_seed, get_vocab, create_embeddings, get_fileList
-from classes.SpreadsheetDataLoader import SpreadsheetDataLoader
-from classes.BertLoader import BertLoader
+from classes.Loader import LoaderSimple, LoaderBert
+
 
 def h_env(input_config):
     """Helper function to validate and setup environment-related configurations."""
@@ -230,62 +231,76 @@ def h_training(config, setup_config):
     return config
 
 def h_simpleloader(config):
-    """Helper function to setup SpreadsheetDataLoaders for simple/rnn approaches."""
-    ######## SIMPLE LOADERS ########
-    # Generate file lists
-    train_files, _ = get_fileList(config["train_dir"])
-    val_files, _ = get_fileList(config["val_dir"])
-    test_files, _ = get_fileList(config["test_dir"])
+   """Helper function to setup LoaderSimple for vocabulary-based approaches."""
+   # Generate file lists
+   train_files, _ = get_fileList(config["train_dir"])
+   val_files, _ = get_fileList(config["val_dir"])
+   test_files, _ = get_fileList(config["test_dir"])
 
-    # Create SpreadsheetDataLoaders
-    config.update({
-        "train_loader": SpreadsheetDataLoader(
-            train_files, config["vocab"], 
-            config["rows"], config["cols"], config["tokens"], 
-            threads=config["THREADS"]
-        ),
-        "val_loader": SpreadsheetDataLoader(
-            val_files, config["vocab"], 
-            config["rows"], config["cols"], config["tokens"], 
-            threads=config["THREADS"]
-        ),
-        "test_loader": SpreadsheetDataLoader(
-            test_files, config["vocab"], 
-            config["rows"], config["cols"], config["tokens"], 
-            threads=config["THREADS"]
-        )
-    })
-    
-    return config
+   # Create Loaders
+   config.update({
+       "train_loader": LoaderSimple(
+           file_paths=train_files,
+           vocab=config["vocab"],
+           max_rows=config["rows"],
+           max_cols=config["cols"],
+           pad_length=config["tokens"],
+           threads=config["THREADS"]
+       ),
+       "val_loader": LoaderSimple(
+           file_paths=val_files,
+           vocab=config["vocab"],
+           max_rows=config["rows"],
+           max_cols=config["cols"],
+           pad_length=config["tokens"],
+           threads=config["THREADS"]
+       ),
+       "test_loader": LoaderSimple(
+           file_paths=test_files,
+           vocab=config["vocab"],
+           max_rows=config["rows"],
+           max_cols=config["cols"],
+           pad_length=config["tokens"],
+           threads=config["THREADS"]
+       )
+   })
+   return config
 
 def h_bertloader(config):
-    """Helper function to setup BertLoader for BERT approach."""
-    ######## BERT LOADERS ########
-    # Generate file lists
-    train_files, _ = get_fileList(config["train_dir"])
-    val_files, _ = get_fileList(config["val_dir"])
-    test_files, _ = get_fileList(config["test_dir"])
+   """Helper function to setup LoaderBert for BERT approach."""
+   # Generate file lists
+   train_files, _ = get_fileList(config["train_dir"])
+   val_files, _ = get_fileList(config["val_dir"])
+   test_files, _ = get_fileList(config["test_dir"])
 
-    # Create BertLoader objects
-    config.update({
-        "train_loader": BertLoader(
-            train_files, config["tokenizer"], 
-            config["rows"], config["cols"], config["tokens"], 
-            threads=config["THREADS"]
-        ),
-        "val_loader": BertLoader(
-            val_files, config["tokenizer"], 
-            config["rows"], config["cols"], config["tokens"], 
-            threads=config["THREADS"]
-        ),
-        "test_loader": BertLoader(
-            test_files, config["tokenizer"], 
-            config["rows"], config["cols"], config["tokens"], 
-            threads=config["THREADS"]
-        )
-    })
-    
-    return config
+   # Create Loaders
+   config.update({
+       "train_loader": LoaderBert(
+           file_paths=train_files,
+           tokenizer=config["tokenizer"],
+           max_rows=config["rows"],
+           max_cols=config["cols"],
+           pad_length=config["tokens"],
+           threads=config["THREADS"]
+       ),
+       "val_loader": LoaderBert(
+           file_paths=val_files,
+           tokenizer=config["tokenizer"],
+           max_rows=config["rows"],
+           max_cols=config["cols"],
+           pad_length=config["tokens"],
+           threads=config["THREADS"]
+       ),
+       "test_loader": LoaderBert(
+           file_paths=test_files,
+           tokenizer=config["tokenizer"],
+           max_rows=config["rows"],
+           max_cols=config["cols"],
+           pad_length=config["tokens"],
+           threads=config["THREADS"]
+       )
+   })
+   return config
 
 
 
@@ -381,9 +396,9 @@ def display_config(config):
             "wvs": "<Embedding Matrix>",
             
             # DataLoader Configuration
-            "train_loader": "<SpreadsheetDataLoader Object>",
-            "val_loader": "<SpreadsheetDataLoader Object>",
-            "test_loader": "<SpreadsheetDataLoader Object>"
+            "train_loader": "<LoaderSimple Object>",
+            "val_loader": "<LoaderSimple Object>",
+            "test_loader": "<LoaderSimple Object>"
         }
         ordered_config.update(vocab_config)
         
@@ -394,9 +409,9 @@ def display_config(config):
             "tokenizer": "<BERT Tokenizer Object>",
             
             # DataLoader Configuration
-            "train_loader": "<BertLoader Object>",
-            "val_loader": "<BertLoader Object>",
-            "test_loader": "<BertLoader Object>"
+            "train_loader": "<LoaderBert Object>",
+            "val_loader": "<LoaderBert Object>",
+            "test_loader": "<LoaderBert Object>"
         }
         ordered_config.update(bert_config)
         
