@@ -1,9 +1,9 @@
 # Import parsing function in the required order
 import importlib
-from utils import parsebert
+from utils import parseutil
 
-importlib.reload(parsebert)
-from utils.parsebert import process_spreadsheet
+importlib.reload(parseutil)
+from utils.parseutil import process_spreadsheet
 
 # Other imports
 import os
@@ -79,7 +79,7 @@ class BertLoader(torch.utils.data.Dataset):
         self.failed_files = []
 
         # Parallel processing of files
-        results = Parallel(n_jobs=max(1, os.cpu_count() // threads), timeout=99999)(
+        results = Parallel(n_jobs=max(1, threads), timeout=99999)(
             delayed(self._featurize)(f)
             for f in tqdm(file_paths, desc="Processing files")
         )
@@ -144,7 +144,7 @@ class BertLoader(torch.utils.data.Dataset):
         try:
             # process_spreadsheet now returns (x_tok, x_masks, y_tok)
             x_tok_cur, x_masks_cur, y_tok_cur = process_spreadsheet(
-                file_path, self.tokenizer, self.max_rows, self.max_cols, self.pad_length
+                file_path, self.max_rows, self.max_cols, self.pad_length, tokenizer=self.tokenizer
             )
             return x_tok_cur, x_masks_cur, y_tok_cur, file_path
 
