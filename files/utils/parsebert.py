@@ -971,7 +971,7 @@ def process_csv(file_path, tokenizer, max_rows=100, max_cols=100, pad_length=32)
                         y_tok[row_index, col_index, 2] = 0
                         y_tok[row_index, col_index, 3] = 2
                         y_tok[row_index, col_index, 4] = 0
-                        y_tok[row_index, col_index, 5] = 12
+                        y_tok[row_index, col_index, 5] = 11
                         y_tok[row_index, col_index, 6] = 0
                         y_tok[row_index, col_index, 7] = 0
                         y_tok[row_index, col_index, 8] = 0
