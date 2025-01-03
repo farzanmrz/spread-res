@@ -49,8 +49,8 @@ def h_env(input_config):
         raise ValueError("ERR: threads must be a number")
     
     threads = int(input_config["threads"])
-    if (os.cpu_count() - threads) < 4:
-        raise ValueError(f"ERR: Must leave at least 4 threads free (requested {threads})")
+    if (os.cpu_count() - threads) < 2:
+        raise ValueError(f"ERR: Must leave at least 2 threads free (requested {threads})")
     config["THREADS"] = max(1, threads)
     
     ######## SEED ########
