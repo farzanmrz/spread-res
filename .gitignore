@@ -15,6 +15,9 @@ Thumbs.db
 # Specific folders to ignore that might be generated
 gensim-data/
 
+# Ignore saffu files
+saffu/
+files/saffu/
 
 #---------------------------------------------------------------------------------
 ##################################################################################
