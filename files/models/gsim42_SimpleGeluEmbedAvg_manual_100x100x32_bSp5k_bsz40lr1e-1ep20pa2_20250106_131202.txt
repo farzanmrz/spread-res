@@ -1,0 +1,41 @@
+
+Final configuration:
+{
+  "env": "gcp",
+  "approach": "simple",
+  "model_name": "SimpleGeluEmbedAvg",
+  "data_dir": "../../data/farzan",
+  "data_ds": "manual",
+  "seed": 42,
+  "THREADS": 12,
+  "vocab_size": 5597,
+  "vocab_space": true,
+  "vocab_case": "both",
+  "train_dir": "../../data/farzan/manual_train",
+  "val_dir": "../../data/farzan/manual_val",
+  "test_dir": "../../data/farzan/manual_test",
+  "rows": 100,
+  "cols": 100,
+  "tokens": 32,
+  "batch": 40,
+  "lr": 0.1,
+  "mu": 0.25,
+  "epochs": 20,
+  "patience": 2,
+  "save_int": 10,
+  "save_dir": "../models/",
+  "save_name": "gsim42_SimpleGeluEmbedAvg_manual_100x100x32_bSp5k_bsz40lr1e-1ep20pa2"
+}
+
+================================================================================
+
+
+Epoch 0
+Train Loss: 1.77257239818573, Perplexity: 1.0000177258810834
+Val Loss: 0.6548740267753601, Perplexity: 1.0000065487617107
+
+Epoch 1
+Train Loss: 0.6655376553535461, Perplexity: 1.0000066553987006
+Val Loss: 0.4066166281700134, Perplexity: 1.0000040661745486
+
+Epoch 2

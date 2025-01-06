@@ -26,8 +26,8 @@ class Vocab:
         self.unk_token = '[UNK]'
         
         # Define token IDs
-        self.pad_token_id = 0
-        self.unk_token_id = 1
+        self.pad_token_id = 1
+        self.unk_token_id = 0
         self.cls_token_id = 2
         self.sep_token_id = 3
 

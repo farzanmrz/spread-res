@@ -957,3 +957,56 @@ def process_spreadsheet(file_path: str, vocab, max_rows=100, max_cols=100, pad_l
 
     except Exception as e:
         raise e
+
+        
+def process_spreadsheet(
+    file_path: str,
+    tokenizer,                 # A Hugging Face ModernBert tokenizer
+    max_rows=100,
+    max_cols=100,
+    pad_length=32
+):
+    """
+    Processes a spreadsheet file (.xls, .xlsx, .csv) and extracts both the tokenized train tensors 
+    and the metadata tensor, using a Hugging Face tokenizer for cell content.
+
+    Args:
+        file_path (str): The path to the spreadsheet file.
+        tokenizer: A Hugging Face tokenizer object (replacing the old vocabulary approach).
+        max_rows (int, optional): The maximum number of rows to process. Defaults to 100.
+        max_cols (int, optional): The maximum number of columns to process. Defaults to 100.
+        pad_length (int, optional): The length to which the tokenized cell value is padded/truncated. Defaults to 32.
+
+    Returns:
+        A tuple containing:
+            - x_tok (torch.LongTensor): A (max_rows x max_cols x pad_length) tensor with input_ids.
+            - x_masks (torch.LongTensor): A (max_rows x max_cols x pad_length) tensor with attention masks.
+            - y_tok (torch.LongTensor): A (max_rows x max_cols x 17) tensor containing metadata for each cell.
+
+    Raises:
+        Exception: If an unsupported file format is given or any other error occurs during processing.
+    """
+
+    try:
+        file_extension = file_path.split('.')[-1].lower()
+
+        if file_extension not in ['xls', 'xlsx', 'csv']:
+            raise ValueError(f"Unsupported file format: {file_extension} for {file_path}")
+
+        if file_extension == 'xls':
+            x_tok, x_masks, y_tok = process_xls(
+                file_path, tokenizer, max_rows, max_cols, pad_length
+            )
+        elif file_extension == 'xlsx':
+            x_tok, x_masks, y_tok = process_xlsx(
+                file_path, tokenizer, max_rows, max_cols, pad_length
+            )
+        else:  # 'csv'
+            x_tok, x_masks, y_tok = process_csv(
+                file_path, tokenizer, max_rows, max_cols, pad_length
+            )
+
+        return x_tok, x_masks, y_tok
+
+    except Exception as e:
+        raise e

@@ -264,29 +264,29 @@ def h_tokbert(config):
    config["tokenizer"] = AutoTokenizer.from_pretrained(config["model_base"])
    return config
 
-def setup_config(setup_config):
+def setup_config(input_config):
     """Sets up the configuration for model training with modular helper functions."""
     ######## ENVIRONMENT ########
-    config = h_env(setup_config)
+    config = h_env(input_config)
 
     ######## MODEL ########
-    config = h_model(config, setup_config)
+    config = h_model(config, input_config)
 
     ######## DATA ########
-    config = h_data(config, setup_config)
+    config = h_data(config, input_config)
 
     ######## APPROACH-SPECIFIC SETUP ########
     if config["approach"] in ["simple", "rnn"]:
        
         ######## VOCAB ########
-        config = h_vocab(config, setup_config)
+        config = h_vocab(config, input_config)
 
         ######## SIMPLE LOADERS ########
         config = h_simpleloader(config)
 
         ######## RNN PARAMS ########
         if config["approach"] == "rnn":
-            config = h_rnn(config, setup_config)
+            config = h_rnn(config, input_config)
 
     ######## BERT-SPECIFIC ########
     elif config["approach"] == "bert":
@@ -298,7 +298,7 @@ def setup_config(setup_config):
        pass
 
     ######## TRAINING & SAVE NAME ########
-    config = h_training(config, setup_config)
+    config = h_training(config, input_config)
 
     return config
 

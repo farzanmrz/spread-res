@@ -392,6 +392,13 @@ def process_xls(file_path, max_rows=100, max_cols=100, pad_length=32, *, tokeniz
     # Validate parameters and get processing mode
     isBert, x_tok, x_masks, y_tok = h_tensors(max_rows, max_cols, pad_length, tokenizer, vocab)
     
+    # Initialize 3D tensor of size rows x cols x pad_length = 100x100x32
+    x_tok = torch.zeros((max_rows, max_cols, pad_length), dtype = torch.long)
+
+    # Initialize y_tok tensor to store metadata for each cell of size row x col x 6
+    y_tok = torch.zeros((max_rows, max_cols, 17), dtype = torch.long)
+
+    
     # Open the .xls file with formatting_info=True to get the metadata
     workbook = xlrd.open_workbook(filename=file_path, formatting_info=True)
 
@@ -817,6 +824,13 @@ def process_xlsx(file_path, max_rows=100, max_cols=100, pad_length=32, *, tokeni
     
     # Validate parameters and get processing mode
     isBert, x_tok, x_masks, y_tok = h_tensors(max_rows, max_cols, pad_length, tokenizer, vocab)
+    
+    # Initialize 3D tensor of size rows x cols x pad_length = 100x100x32
+    x_tok = torch.zeros((max_rows, max_cols, pad_length), dtype = torch.long)
+
+    # Initialize y_tok tensor to store metadata for each cell of size row x col x 6
+    y_tok = torch.zeros((max_rows, max_cols, 17), dtype = torch.long)
+
 
     # Load the workbook and access the active sheet
     workbook = openpyxl.load_workbook(file_path, data_only = True)
