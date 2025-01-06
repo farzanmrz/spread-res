@@ -1,7 +1,7 @@
 import importlib
-from utils import testparse
-importlib.reload(testparse)
-from utils.testparse import process_spreadsheet
+from utils import parseutil
+importlib.reload(parseutil)
+from utils.parseutil import process_spreadsheet
 
 import torch
 from tqdm import tqdm
