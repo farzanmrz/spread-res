@@ -19,20 +19,26 @@ class Vocab:
         self._case = case
         self._space = space
 
-        # Adjust special tokens as per case for upper and lower/both
-        if self._case == 'lower':
-            self.UNK = '<unk>'
-            self.PAD = '<pad>'
-            self.CLS = '<cls>'
-            self.EOS = '<eos>'
-        else:
-            self.UNK = '<UNK>'
-            self.PAD = '<PAD>'
-            self.CLS = '<CLS>'
-            self.EOS = '<EOS>'
+        # Define special tokens similar to BERT
+        self.cls_token = '[CLS]'
+        self.sep_token = '[SEP]' 
+        self.pad_token = '[PAD]'
+        self.unk_token = '[UNK]'
+        
+        # Define token IDs
+        self.pad_token_id = 1
+        self.unk_token_id = 0
+        self.cls_token_id = 2
+        self.sep_token_id = 3
 
         # Dictionary mapping words to indices, blank if target is True else made with special tokens.
-        self._word2idx = { } if self._target else { self.UNK: 0, self.PAD: 1, self.CLS: 2, self.EOS: 3 }
+        self._word2idx = {} if self._target else {
+            self.pad_token: self.pad_token_id,
+            self.unk_token: self.unk_token_id,
+            self.cls_token: self.cls_token_id,
+            self.sep_token: self.sep_token_id
+        }
+        
 
         # Dictionary mapping indices to words, reverses lookup for the vocab.
         self._idx2word = { v: k for k, v in self._word2idx.items() }
@@ -45,18 +51,24 @@ class Vocab:
         Parameters:
         tokens (list): A list of tokens to be used for training the vocabulary.
         """
-        # Apply case transformation based on the specified case
-        if self._case == 'lower':
-            tokens = map(str.lower, tokens)
-        elif self._case == 'upper':
-            tokens = map(str.upper, tokens)
-        # 'both' case doesn't require transformation
-
-        # Update the vocabulary mapping for tokens not already in _word2idx
-        # Add tokens to the vocabulary if they are not already present
+        processed_tokens = []
         for token in tokens:
+            # Skip case conversion for special tokens
+            if token in [self.cls_token, self.sep_token, self.pad_token, self.unk_token]:
+                processed_tokens.append(token)
+            else:
+                # Apply case transformation based on the specified case
+                if self._case == 'lower':
+                    processed_tokens.append(token.lower())
+                elif self._case == 'upper':
+                    processed_tokens.append(token.upper())
+                else:  # 'both' case
+                    processed_tokens.append(token)
+
+        # Add tokens to the vocabulary if they are not already present
+        for token in processed_tokens:
             if token not in self._word2idx:
-                self._word2idx[ token ] = len(self._word2idx)
+                self._word2idx[token] = len(self._word2idx)
 
         # Rebuild reverse lookup dictionary
         self._idx2word = { v: k for k, v in self._word2idx.items() }
@@ -73,12 +85,15 @@ class Vocab:
         int: The index of the word (case-transformed if applicable) if found in the vocabulary,
              else returns index of the UNK token.
         """
+        if word in [self.cls_token, self.sep_token, self.pad_token, self.unk_token]:
+            return self._word2idx[word]
+        
         if self._case == 'lower':
             word = word.lower()
         elif self._case == 'upper':
             word = word.upper()
 
-        return self._word2idx[ word ] if self._target else self._word2idx.get(word, self._word2idx[ self.UNK ])
+        return self._word2idx[ word ] if self._target else self._word2idx.get(word, self._word2idx[ self.unk_token ])
 
         # """
         # Encodes a word into its corresponding index in the vocabulary.
@@ -102,4 +117,4 @@ class Vocab:
         Returns:
         str: Word corresponding to provided index if found, else returns the UNK token.
         """
-        return self._idx2word[ idx ] if self._target else self._idx2word.get(idx, self.UNK)
+        return self._idx2word[ idx ] if self._target else self._idx2word.get(idx, self.unk_token)

@@ -179,14 +179,9 @@ def tokenize_pad(cell_value, vocab, pad_length=32):
     case = vocab._case
 
     # According to case set the cls, eos and pad tokens
-    if case == "lower":
-        cls_token = "<cls>"
-        eos_token = "<eos>"
-        pad_token = "<pad>"
-    else:
-        cls_token = "<CLS>"
-        eos_token = "<EOS>"
-        pad_token = "<PAD>"
+    cls_token = vocab.cls_token
+    eos_token = vocab.sep_token
+    pad_token = vocab.pad_token
 
     # Pass the cell value along with the case to tokenize
     tokens = tokenize(cell_value, space=vocab._space, case=vocab._case)
