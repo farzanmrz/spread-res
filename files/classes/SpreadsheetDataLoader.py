@@ -102,28 +102,43 @@ class SpreadsheetDataLoader(torch.utils.data.Dataset):
             'file_paths': self.file_paths[index]
         }
 
+#     def _featurize(self, file_path):
+#         """
+#         Processes a single spreadsheet file using vocabulary-based tokenization.
+
+#         Args:
+#             file_path (str): Path to spreadsheet file to process
+
+#         Returns:
+#             tuple: Contains:
+#                 - x_tok: Tensor of tokenized values if successful, None if failed
+#                 - x_masks: Empty tensor for compatibility
+#                 - y_tok: Tensor of metadata if successful, None if failed
+#                 - file_path: Path to the processed file
+#         """
+#         try:
+#             x_tok, x_masks, y_tok = process_spreadsheet(
+#                 file_path, 
+#                 max_rows=self.max_rows, 
+#                 max_cols=self.max_cols,
+#                 pad_length=self.pad_length,
+#                 vocab=self.vocab
+#             )
+#             return x_tok, x_masks, y_tok, file_path
+#         except Exception as e:
+#             return None, None, None, file_path
+
+        
     def _featurize(self, file_path):
-        """
-        Processes a single spreadsheet file using vocabulary-based tokenization.
-
-        Args:
-            file_path (str): Path to spreadsheet file to process
-
-        Returns:
-            tuple: Contains:
-                - x_tok: Tensor of tokenized values if successful, None if failed
-                - x_masks: Empty tensor for compatibility
-                - y_tok: Tensor of metadata if successful, None if failed
-                - file_path: Path to the processed file
-        """
         try:
-            x_tok, x_masks, y_tok = process_spreadsheet(
+            result = process_spreadsheet(
                 file_path, 
                 max_rows=self.max_rows, 
                 max_cols=self.max_cols,
                 pad_length=self.pad_length,
                 vocab=self.vocab
             )
+            x_tok, x_masks, y_tok = result
             return x_tok, x_masks, y_tok, file_path
         except Exception as e:
             return None, None, None, file_path
