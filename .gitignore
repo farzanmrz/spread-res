@@ -9,7 +9,7 @@
 Thumbs.db
 
 # Keep the "data/" folder structure but ignore its contents
-#data/**
+data/
 #!data/**/.gitkeep
 
 # Specific folders to ignore that might be generated
