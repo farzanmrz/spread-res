@@ -1,0 +1,40 @@
+
+Final configuration:
+{
+  "env": "bvm",
+  "approach": "bert",
+  "THREADS": 32,
+  "seed": 42,
+  "model_base": "bert-base-cased",
+  "model_name": "CustomSmallBertBaseCased",
+  "rows": 100,
+  "cols": 100,
+  "tokens": 16,
+  "data_ds": "manual",
+  "data_dir": "../../../data/farzan",
+  "train_dir": "../../../data/farzan/manual_train",
+  "val_dir": "../../../data/farzan/manual_val",
+  "test_dir": "../../../data/farzan/manual_test",
+  "batch": 10,
+  "lr": 1e-06,
+  "mu": 0.25,
+  "epochs": 10,
+  "patience": 2,
+  "save_int": 2,
+  "save_dir": "../models/",
+  "save_name": "bber42_CustomSmallBertBaseCased_manual_100x100x16_bsz10lr1e-6ep10pa2"
+}
+
+================================================================================
+
+
+Epoch 0
+Train Loss: 1.3749155104160309, Perplexity: 1.0000549981327584
+Val Loss: 1.3538637161254883, Perplexity: 1.0000541560150291
+
+Epoch 1
+Train Loss: 1.3749186098575592, Perplexity: 1.000054998256743
+Val Loss: 1.3538556098937988, Perplexity: 1.0000541556907623
+Model Saved
+
+Epoch 2
