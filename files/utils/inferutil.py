@@ -236,3 +236,107 @@ def infer_full(
     
     
 
+def binfer_one(trained_model, infer_loader, loc=0, threshold=0.5, condition='>', disp_max=False, device='cuda:0'):
+    """
+    Same functionality as infer_one but adapted for BERT models that require attention masks.
+    Displays metrics and visualizations for single example inference without returning values.
+    """
+    # Set pandas display options for output
+    [pd.set_option(opt, None) if disp_max else pd.reset_option(opt) for opt in ['display.max_rows', 'display.max_columns']]
+
+    # Define valid conditions for prediction thresholding
+    conditions = {
+        '>': operator.gt,
+        '>=': operator.ge,
+        '<': operator.lt,
+        '<=': operator.le,
+        '==': operator.eq,
+        '!=': operator.ne
+    }
+    if condition not in conditions:
+        raise ValueError(f"Invalid condition '{condition}'. Must be one of {list(conditions.keys())}.")
+
+    # Perform inference with BERT model in evaluation mode
+    trained_model.eval()
+    with torch.no_grad():
+        # Get predictions using both input ids and attention masks
+        predictions = trained_model(
+            infer_loader.x_tok[loc].unsqueeze(0).to(device),
+            infer_loader.x_masks[loc].unsqueeze(0).to(device)
+        )
+    
+    # Process predictions and get actual labels
+    pred_probs = torch.sigmoid(predictions.squeeze(0))
+    pred_labels = conditions[condition](pred_probs, threshold).long()
+    act_labels = torch.tensor(infer_loader.y_tok[loc][:, :, 6].numpy()).to(device)
+    
+    # Calculate metrics for this prediction
+    metrics = get_metrics(pred_labels, act_labels)
+
+    # Display filename and prediction details
+    print(f"\nFilename: {infer_loader.file_paths[loc]}")
+
+    # Find and display sigmoid values for bold cells
+    bold_indices = torch.nonzero(act_labels == 1, as_tuple=False)
+    print("\n--- Unique Sigmoid Probabilities for Bold Cells ---")
+    if len(bold_indices) > 0:
+        unique_sigmoids = {}
+        for idx in bold_indices:
+            row, col = idx.tolist()
+            sigmoid_value = pred_probs[row, col].item()
+            if sigmoid_value not in unique_sigmoids:
+                unique_sigmoids[sigmoid_value] = (row, col)
+        
+        for value, location in sorted(unique_sigmoids.items(), key=lambda x: x[0], reverse=False):
+            row, col = location
+            print(f"({row},{col}): {value:.20f}")
+    else:
+        print("No bold cells in the actual data.")
+
+    # Display metrics summary
+    print(
+        f"\nNB to B ratio: Predicted = {metrics['pred_non_bold_count']}:{metrics['pred_bold_count']} | "
+        f"Actual = {metrics['act_non_bold_count']}:{metrics['act_bold_count']}\n"
+        f"Accuracy: {metrics['accuracy'] * 100:.2f}% | Precision: {metrics['precision'] * 100:.2f}% | "
+        f"Recall: {metrics['recall'] * 100:.2f}% | F1-Score: {metrics['f1']:.2f}\n"
+    )
+
+    # Create and display confusion matrix visualization
+    cm = metrics["confusion_matrix"]
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(
+        cm,
+        annot=[["TN\n" + str(cm[0, 0]), "FP\n" + str(cm[0, 1])],
+               ["FN\n" + str(cm[1, 0]), "TP\n" + str(cm[1, 1])]],
+        fmt="",
+        cmap="Blues",
+        xticklabels=["NB(0)", "B(1)"],
+        yticklabels=["NB(0)", "B(1)"]
+    )
+    plt.xlabel("Predicted"), plt.ylabel("Actual"), plt.title("BERT BOLD Cell Prediction CM"), plt.show()
+
+    # Process and display filtered prediction grids
+    pred_np, act_np = pred_labels.cpu().numpy(), act_labels.cpu().numpy()
+
+    # Filter predicted grid
+    pred_rows = (pred_np == 1).any(axis=1)
+    pred_cols = (pred_np == 1).any(axis=0)
+    pred_df_filtered = pd.DataFrame(pred_np).loc[pred_rows, pred_cols]
+
+    # Filter actual grid
+    act_rows = (act_np == 1).any(axis=1)
+    act_cols = (act_np == 1).any(axis=0)
+    act_df_filtered = pd.DataFrame(act_np).loc[act_rows, act_cols]
+
+    # Display filtered grids
+    print("\n--- Predicted Grid (1 = Bold, 0 = Not Bold) ---")
+    if not pred_df_filtered.empty:
+        display(pred_df_filtered)
+    else:
+        print("No bold cells predicted.")
+
+    print("\n--- Actual Grid (1 = Bold, 0 = Not Bold) ---")
+    if not act_df_filtered.empty:
+        display(act_df_filtered)
+    else:
+        print("No bold cells in actual data.")
