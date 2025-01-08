@@ -45,7 +45,7 @@ class BertLoader(torch.utils.data.Dataset):
 
     def __init__(
         self,
-        file_paths,  
+        file_paths,
         tokenizer,  # A Hugging Face tokenizer
         max_rows=100,
         max_cols=100,
@@ -53,7 +53,7 @@ class BertLoader(torch.utils.data.Dataset):
         threads=4,
     ):
         """
-        Initializes the BertLoader with file paths, tokenizer, rows/cols, and pad length.
+            Initializes the BertLoader with file paths, tokenizer, rows/cols, and pad length.
 
         Args:
             file_paths: List of file paths to the spreadsheets (no explicit type annotation).
@@ -113,16 +113,15 @@ class BertLoader(torch.utils.data.Dataset):
         return len(self.x_tok)
 
     def __getitem__(self, index):
-        """
-        Retrieves the data (x_tok, x_masks, y_tok) for the given index.
+        """Gets the data for a single spreadsheet at the given index.
 
         Args:
-            index (int): Index of the sample to retrieve.
+            index (int): Index of the spreadsheet to retrieve.
 
         Returns:
-            dict: A dictionary containing 'x_tok', 'x_masks', 'y_tok',
-                  and 'file_paths' for the requested spreadsheet.
+            dict: Contains input_ids, masks, metadata and file path for spreadsheet at index
         """
+
         return {
             "x_tok": self.x_tok[index],
             "x_masks": self.x_masks[index],
@@ -144,7 +143,11 @@ class BertLoader(torch.utils.data.Dataset):
         try:
             # process_spreadsheet now returns (x_tok, x_masks, y_tok)
             x_tok_cur, x_masks_cur, y_tok_cur = process_spreadsheet(
-                file_path, self.max_rows, self.max_cols, self.pad_length, tokenizer=self.tokenizer
+                file_path,
+                self.max_rows,
+                self.max_cols,
+                self.pad_length,
+                tokenizer=self.tokenizer,
             )
             return x_tok_cur, x_masks_cur, y_tok_cur, file_path
 
