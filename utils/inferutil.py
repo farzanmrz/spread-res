@@ -340,3 +340,96 @@ def binfer_one(trained_model, infer_loader, loc=0, threshold=0.5, condition='>',
         display(act_df_filtered)
     else:
         print("No bold cells in actual data.")
+
+def binfer_full(trained_model, infer_loader, batch_size=8, threshold=0.5, device="cuda:0"):
+    """
+    Runs inference on a dataset with batching for BERT models, computes average metrics across all files, and handles class imbalance.
+
+    Args:
+        trained_model: The trained PyTorch BERT model.
+        infer_loader: A dataset-like object containing x_tok, x_masks, and y_tok.
+        batch_size: Number of examples per batch for inference.
+        threshold: Threshold for classification decision.
+        device: Device to run inference on (e.g., "cuda:0" or "cpu").
+
+    Returns:
+        None
+    """
+    # Create DataLoader for batching directly from infer_loader
+    batch_loader = torch.utils.data.DataLoader(
+        infer_loader, batch_size=batch_size, shuffle=False
+    )
+
+    # Initialize cumulative variables
+    total_pred_bold = 0
+    total_pred_non_bold = 0
+    total_act_bold = 0
+    total_act_non_bold = 0
+    total_confusion_matrix = np.zeros((2, 2), dtype=int)
+    cumulative_metrics = {"accuracy": 0, "precision": 0, "recall": 0, "f1": 0}
+    num_batches = len(batch_loader)
+
+    # Set model to eval mode
+    trained_model.eval()
+
+    # Iterate through the DataLoader batch-wise
+    for batch_idx, batch in enumerate(tqdm(batch_loader, desc="Batch Inference")):
+
+        # Perform inference
+        with torch.no_grad():
+            # Pass both input ids and attention masks to the model
+            pred_probs = torch.sigmoid(
+                trained_model(
+                    batch["x_tok"].to(device),
+                    batch["x_masks"].to(device)
+                )
+            )
+
+        # Flatten both labels
+        pred_labels = (pred_probs > threshold).long().flatten()
+
+        # Compute metrics for the current batch
+        metrics = get_metrics(
+            pred_labels, batch["y_tok"][:, :, :, 6].flatten().to(device)
+        )
+
+        # Accumulate batch metrics
+        total_pred_bold += metrics["pred_bold_count"]
+        total_pred_non_bold += metrics["pred_non_bold_count"]
+        total_act_bold += metrics["act_bold_count"]
+        total_act_non_bold += metrics["act_non_bold_count"]
+        total_confusion_matrix += metrics["confusion_matrix"]
+        for key in ["accuracy", "precision", "recall", "f1"]:
+            cumulative_metrics[key] += metrics[key]
+
+    # Compute average metrics across all batches
+    avg_metrics = {
+        key: cumulative_metrics[key] / num_batches for key in cumulative_metrics
+    }
+
+    # Display aggregated results
+    print(f"\n--- Aggregated Metrics Across All Batches ---")
+    print(
+        f"\nNB to B ratio: Predicted = {total_pred_non_bold}:{total_pred_bold} | "
+        f"Actual = {total_act_non_bold}:{total_act_bold}\n"
+        f"Accuracy: {avg_metrics['accuracy'] * 100:.2f}% | Precision: {avg_metrics['precision'] * 100:.2f}% | "
+        f"Recall: {avg_metrics['recall'] * 100:.2f}% | F1-Score: {avg_metrics['f1']:.2f}\n"
+    )
+
+    # Confusion matrix visualization
+    cm = total_confusion_matrix
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(
+        cm,
+        annot=[
+            ["TN\n" + str(cm[0, 0]), "FP\n" + str(cm[0, 1])],
+            ["FN\n" + str(cm[1, 0]), "TP\n" + str(cm[1, 1])],
+        ],
+        fmt="",
+        cmap="Blues",
+        xticklabels=["NB(0)", "B(1)"],
+        yticklabels=["NB(0)", "B(1)"],
+    )
+    plt.xlabel("Predicted"), plt.ylabel("Actual"), plt.title(
+        "BERT BOLD Cell Prediction CM"
+    ), plt.show()
