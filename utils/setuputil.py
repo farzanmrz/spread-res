@@ -182,7 +182,7 @@ def h_vocab(config, input_config):
     return config
 
 
-def h_rnn(config, setup_config):
+def h_rnn(config, input_config):
     """Helper function to setup RNN-specific parameters."""
     if config["approach"] != "rnn":
         return config
@@ -190,71 +190,272 @@ def h_rnn(config, setup_config):
     ######## RNN PARAMETERS ########
     config.update(
         {
-            "hidden_dim": setup_config.get("hidden_dim", 128),
-            "rnn_layers": setup_config.get("rnn_layers", 2),
-            "dropout_rate": setup_config.get("dropout_rate", 0.05),
-            "nonlinearity": setup_config.get("nonlinearity", "relu"),
+            "hidden_dim": input_config.get("hidden_dim", 128),
+            "rnn_layers": input_config.get("rnn_layers", 2),
+            "dropout_rate": input_config.get("dropout_rate", 0.05),
+            "nonlinearity": input_config.get("nonlinearity", "relu"),
         }
     )
 
     return config
 
 
-def h_training(config, setup_config):
-    """Helper function to setup training parameters and generate save name."""
+# def h_training(config, input_config):
+#     """Helper function to setup training parameters and generate save name."""
+#     ######## TRAINING PARAMS ########
+#     config.update(
+#         {
+#             "batch": input_config["batch"],
+#             "lr": input_config["lr"],
+#             "mu": input_config["mu"],
+#             "epochs": input_config["epochs"],
+#             "patience": input_config["patience"],
+#             "save_int": input_config["save_int"],
+#             "save_dir": input_config["save_dir"],
+#         }
+#     )
+
+#     ######## SAVE NAME ########
+#     # Basic components (common across all approaches)
+#     env_map = {"gcp": "g", "local": "l", "bvm": "b", "colab": "c"}
+#     env_abbr = env_map[config["env"]]
+#     app_prefix = config["approach"][:3]
+#     base_name = f"{env_abbr}{app_prefix}{config['seed']}"
+
+#     # Context dims component
+#     dims = f"{config['model_name']}_{config['data_ds']}_{config['rows']}x{config['cols']}x{config['tokens']}"
+
+#     # Training params component
+#     train_params = (
+#         f"bsz{config['batch']}lr{config['lr']:.0e}".replace("e-0", "e-")
+#         + f"ep{config['epochs']}pa{config['patience']}"
+#     )
+
+#     # Approach-specific components
+#     if config["approach"] in ["simple", "rnn"]:
+#         # Vocab string for simple/rnn approaches
+#         case_prefix = {"both": "b", "upper": "u", "lower": "l"}[config["vocab_case"]]
+#         space_str = "Sp" if config["vocab_space"] else "Nsp"
+#         vocab_str = f"{case_prefix}{space_str}{config['vocab_size']//1000}k"
+
+#         # Additional RNN-specific component
+#         if config["approach"] == "rnn":
+#             rnn_str = f"_rnn{config['rnn_layers']}hid{config['hidden_dim']}"
+#         else:
+#             rnn_str = ""
+
+#         save_name = f"{base_name}_{dims}_{vocab_str}_{train_params}{rnn_str}"
+
+#     elif config["approach"] == "bert":
+#         # BERT models don't need vocab string
+#         save_name = f"{base_name}_{dims}_{train_params}"
+
+#     elif config["approach"] == "saffu":
+#         # SAFFU models don't need vocab string
+#         save_name = f"{base_name}_{dims}_{train_params}"
+
+#     config["save_name"] = save_name
+#     return config
+
+
+# def h_name(config):
+#     """Helper function to generate the save name based on the configuration."""
+#     # Basic components (common across all approaches)
+#     env_map = {"gcp": "g", "local": "l", "bvm": "b", "colab": "c"}
+#     env_abbr = env_map[config["env"]]
+#     app_prefix = config["approach"][:3]
+#     base_name = f"{env_abbr}{app_prefix}{config['seed']}"
+
+#     # Context dims component
+#     dims = f"{config['model_name']}_{config['data_ds']}_{config['rows']}x{config['cols']}x{config['tokens']}"
+
+#     # Training params component
+#     train_params = (
+#         f"bsz{config['batch']}lr{config['lr']:.0e}".replace("e-0", "e-")
+#         + f"ep{config['epochs']}pa{config['patience']}"
+#     )
+
+#     # Approach-specific components
+#     if config["approach"] in ["simple", "rnn"]:
+#         # Vocab string for simple/rnn approaches
+#         case_prefix = {"both": "b", "upper": "u", "lower": "l"}[config["vocab_case"]]
+#         space_str = "Sp" if config["vocab_space"] else "Nsp"
+#         vocab_str = f"{case_prefix}{space_str}{config['vocab_size']//1000}k"
+
+#         # Additional RNN-specific component
+#         if config["approach"] == "rnn":
+#             rnn_str = f"_rnn{config['rnn_layers']}hid{config['hidden_dim']}"
+#         else:
+#             rnn_str = ""
+
+#         save_name = f"{base_name}_{dims}_{vocab_str}_{train_params}{rnn_str}"
+
+#     elif config["approach"] == "bert":
+#         # BERT models don't need vocab string
+#         save_name = f"{base_name}_{dims}_{train_params}"
+
+#     elif config["approach"] == "saffu":
+#         # SAFFU models don't need vocab string
+#         save_name = f"{base_name}_{dims}_{train_params}"
+
+#     return save_name
+
+
+def h_name(config):
+    """Helper function to generate the save name based on the configuration."""
+
+    ### BASE FORMAT SAME FOR ALL APPROACHES ###
+
+    # 1a. Approach: Short 3 low chars
+    approach_str = config["approach"].lower()[:3]
+
+    # 1b. Seed: Convert to string
+    seed_str = str(config["seed"])
+
+    # 1c. Environment: Short 1 low char
+    env_str = config["env"].lower()[:1]
+
+    # 1. First string
+    first_str = approach_str + seed_str + env_str + "_"
+
+    # 2a. Model Base: Mapped Short error checked
+    modelbase_map = {"glove50": "g50", "bert-base-cased": "bbc"}
+    if config["model_base"] in modelbase_map:
+        modelbase_str = modelbase_map[config["model_base"]]
+    else:
+        raise ValueError(
+            f"ERR: Model base '{config['model_base']}' not found in mappings"
+        )
+
+    # 2b. Model Name: Name of our defined class for model architecure
+    modelname_str = config["model_name"]
+
+    # 2. Second string
+    second_str = modelbase_str + modelname_str + "_"
+
+    # 3a. Data Set: low str
+    ds_str = config["data_ds"]
+
+    # 3b. Context: Rows+Cols+Tokens to str
+    context_str = str(config["rows"]) + str(config["cols"]) + str(config["tokens"])
+
+    # 3. Third string
+    third_str = ds_str + context_str + "_"
+
+    # 4a. Batch: ba followed by batch size
+    batch_str = "ba" + str(config["batch_size"])
+
+    # 4b. Learning Rate: lr followed by learning rate in scientific notation
+    lr_str = "lr" + f"{config['lr']:.0e}".replace("e-0", "e-")
+
+    # 4c. Epochs: ep followed by number of epochs
+    epochs_str = "ep" + str(config["epochs"])
+
+    # 4d. Patience: pa followed by patience value
+    patience_str = "pa" + str(config["patience"])
+
+    # 4. Fourth string
+    fourth_str = batch_str + lr_str + epochs_str + patience_str + "_"
+
+    # Construct base string based on these
+    base_str = first_str + second_str + third_str + fourth_str
+
+    # If approach is simple
+    if config["approach"].lower() == "simple":
+
+        # 1a. Vocab case: First char of case
+        vcase_str = config["vocab_case"][0]
+
+        # 1b. Vocab space: Sp if True, Nsp if False
+        vspace_str = "Sp" if config["vocab_space"] else "Nsp"
+
+        # 1c. Vocab size: k suffix for thousands
+        vsize_str = str(config["vocab_size"] // 1000) + "k"
+
+        # 1. Vocab string
+        vocab_str = vcase_str + vspace_str + vsize_str
+
+        # Set the save name
+        save_name = base_str + vocab_str
+
+    # If approach is rnn
+    elif config["approach"].lower() == "rnn":
+
+        # 1a. Vocab case: First char of case
+        vcase_str = config["vocab_case"][0]
+
+        # 1b. Vocab space: Sp if True, Nsp if False
+        vspace_str = "Sp" if config["vocab_space"] else "Nsp"
+
+        # 1c. Vocab size: k suffix for thousands
+        vsize_str = str(config["vocab_size"] // 1000) + "k"
+
+        # 1. Vocab string
+        vocab_str = vcase_str + vspace_str + vsize_str + "_"
+
+        # 2a. Hidden Dim: hid followed by hidden dimension
+        hdim_str = "h" + str(config["hidden_dim"])
+
+        # 2a. RNN Layers: rnn followed by number of layers
+        layer_str = "l" + str(config["rnn_layers"])
+
+        # 2. RNN string
+        rnn_str = hdim_str + layer_str
+
+        # Set the save name
+        save_name = base_str + vocab_str + rnn_str
+
+    # If approach is bert
+    elif config["approach"].lower() == "bert":
+
+        # 1a. Vocab size: v followed by vocab size
+        vsize_str = "v" + str(config["vocab_size"])
+
+        # 1b. Hidden size: h followed by hidden size
+        hsize_str = "h" + str(config["hidden_size"])
+
+        # 1c. Intermediate size: i followed by intermediate size
+        isize_str = "i" + str(config["intermediate_size"])
+
+        # 1d. Hidden Layers: l followed by number of layers
+        hlayer_str = "l" + str(config["num_hidden_layers"])
+
+        # 1e. Attention Heads: a followed by number of heads
+        ahead_str = "a" + str(config["num_attention_heads"])
+
+        # 1. BERT string
+        bert_str = vsize_str + hsize_str + isize_str + hlayer_str + ahead_str
+
+        # Set the save name
+        save_name = base_str + bert_str
+
+    # If approach is saffu
+    elif config["approach"].lower() == "saffu":
+        # SAFFU-specific naming logic
+        save_name = base_str + "saffu_component"
+
+    # Return the save name
+    return save_name
+
+
+def h_training(config, input_config):
+    """Helper function to setup training parameters and call h_name for save name generation."""
     ######## TRAINING PARAMS ########
     config.update(
         {
-            "batch": setup_config["batch"],
-            "lr": setup_config["lr"],
-            "mu": setup_config["mu"],
-            "epochs": setup_config["epochs"],
-            "patience": setup_config["patience"],
-            "save_int": setup_config["save_int"],
-            "save_dir": setup_config["save_dir"],
+            "batch_size": input_config["batch_size"],
+            "lr": input_config["lr"],
+            "mu": input_config["mu"],
+            "epochs": input_config["epochs"],
+            "patience": input_config["patience"],
+            "save_int": input_config["save_int"],
+            "save_dir": input_config["save_dir"],
         }
     )
 
     ######## SAVE NAME ########
-    # Basic components (common across all approaches)
-    env_map = {"gcp": "g", "local": "l", "bvm": "b", "colab": "c"}
-    env_abbr = env_map[config["env"]]
-    app_prefix = config["approach"][:3]
-    base_name = f"{env_abbr}{app_prefix}{config['seed']}"
+    config["save_name"] = h_name(config)
 
-    # Context dims component
-    dims = f"{config['model_name']}_{config['data_ds']}_{config['rows']}x{config['cols']}x{config['tokens']}"
-
-    # Training params component
-    train_params = (
-        f"bsz{config['batch']}lr{config['lr']:.0e}".replace("e-0", "e-")
-        + f"ep{config['epochs']}pa{config['patience']}"
-    )
-
-    # Approach-specific components
-    if config["approach"] in ["simple", "rnn"]:
-        # Vocab string for simple/rnn approaches
-        case_prefix = {"both": "b", "upper": "u", "lower": "l"}[config["vocab_case"]]
-        space_str = "Sp" if config["vocab_space"] else "Nsp"
-        vocab_str = f"{case_prefix}{space_str}{config['vocab_size']//1000}k"
-
-        # Additional RNN-specific component
-        if config["approach"] == "rnn":
-            rnn_str = f"_rnn{config['rnn_layers']}hid{config['hidden_dim']}"
-        else:
-            rnn_str = ""
-
-        save_name = f"{base_name}_{dims}_{vocab_str}_{train_params}{rnn_str}"
-
-    elif config["approach"] == "bert":
-        # BERT models don't need vocab string
-        save_name = f"{base_name}_{dims}_{train_params}"
-
-    elif config["approach"] == "saffu":
-        # SAFFU models don't need vocab string
-        save_name = f"{base_name}_{dims}_{train_params}"
-
-    config["save_name"] = save_name
     return config
 
 
@@ -297,7 +498,7 @@ def h_simpleloader(config):
     return config
 
 
-def h_setupbert(config):
+def h_setupbert(config, input_config):
     """Helper function to setup BERT configuration, tokenizer, and loaders."""
 
     # First set up tokenizer as before
@@ -306,19 +507,21 @@ def h_setupbert(config):
     # Setup BERT configuration with defaults from documentation
     bert_config = {
         "vocab_size": 30522,  # Default from docs
-        "hidden_size": config.get("hidden_size", 128),
-        "num_hidden_layers": config.get("num_hidden_layers", 1),
-        "num_attention_heads": config.get("num_attention_heads", 4),
-        "intermediate_size": config.get("intermediate_size", 512),
-        "hidden_act": config.get("hidden_act", "gelu"),
-        "hidden_dropout_prob": config.get("hidden_dropout_prob", 0.1),
-        "attention_probs_dropout_prob": config.get("attention_probs_dropout_prob", 0.1),
-        "max_position_embeddings": config.get("max_position_embeddings", 64),
-        "type_vocab_size": config.get("type_vocab_size", 2),
-        "initializer_range": config.get("initializer_range", 0.02),
-        "layer_norm_eps": config.get("layer_norm_eps", 1e-12),
-        "pad_token_id": config.get("pad_token_id", 0),
-        "gradient_checkpointing": config.get("gradient_checkpointing", False),
+        "hidden_size": input_config.get("hidden_size", 128),
+        "num_hidden_layers": input_config.get("num_hidden_layers", 1),
+        "num_attention_heads": input_config.get("num_attention_heads", 4),
+        "intermediate_size": input_config.get("intermediate_size", 512),
+        "hidden_act": input_config.get("hidden_act", "gelu"),
+        "hidden_dropout_prob": input_config.get("hidden_dropout_prob", 0.1),
+        "attention_probs_dropout_prob": input_config.get(
+            "attention_probs_dropout_prob", 0.1
+        ),
+        "max_position_embeddings": input_config.get("max_position_embeddings", 64),
+        "type_vocab_size": input_config.get("type_vocab_size", 2),
+        "initializer_range": input_config.get("initializer_range", 0.02),
+        "layer_norm_eps": input_config.get("layer_norm_eps", 1e-12),
+        "pad_token_id": input_config.get("pad_token_id", 0),
+        "gradient_checkpointing": input_config.get("gradient_checkpointing", False),
     }
 
     # Update config with BERT parameters
@@ -361,42 +564,42 @@ def h_setupbert(config):
     return config
 
 
-def setup_config(setup_config):
+def setup_config(input_config):
     """Sets up the configuration for model training with modular helper functions."""
     ######## ENVIRONMENT ########
-    config = h_env(setup_config)
+    config = h_env(input_config)
 
     ######## MODEL ########
-    config = h_model(config, setup_config)
+    config = h_model(config, input_config)
 
     ######## DATA ########
-    config = h_data(config, setup_config)
+    config = h_data(config, input_config)
 
     ######## APPROACH-SPECIFIC SETUP ########
     if config["approach"] in ["simple", "rnn"]:
 
         ######## VOCAB ########
-        config = h_vocab(config, setup_config)
+        config = h_vocab(config, input_config)
 
         ######## SIMPLE LOADERS ########
         config = h_simpleloader(config)
 
         ######## RNN PARAMS ########
         if config["approach"] == "rnn":
-            config = h_rnn(config, setup_config)
+            config = h_rnn(config, input_config)
 
     ######## BERT-SPECIFIC ########
     elif config["approach"] == "bert":
 
         ######## SETUP ########
-        config = h_setupbert(config)
+        config = h_setupbert(config, input_config)
 
     ######## SAFFU-SPECIFIC ########
     elif config["approach"] == "saffu":
         pass
 
     ######## TRAINING & SAVE NAME ########
-    config = h_training(config, setup_config)
+    config = h_training(config, input_config)
 
     return config
 
