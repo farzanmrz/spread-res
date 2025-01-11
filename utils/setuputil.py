@@ -401,104 +401,117 @@ def setup_config(setup_config):
     return config
 
 
+# def display_config(config):
+#     """Display the current configuration settings."""
+#     config_serializable = copy.deepcopy(config)
+#     config_serializable["DEVICE"] = str(config_serializable["DEVICE"])
+
+#     # Base configuration that exists for all approaches
+#     ordered_config = {
+#         # Environment Info
+#         "env": config_serializable["env"],
+#         "approach": config_serializable["approach"],
+#         # Model Info
+#         "model_base": config_serializable["model_base"],
+#         "model_name": config_serializable["model_name"],
+#         # Context Parameters
+#         "rows": config_serializable["rows"],
+#         "cols": config_serializable["cols"],
+#         "tokens": config_serializable["tokens"],
+#         # System Configuration
+#         "DEVICE": config_serializable["DEVICE"],
+#         "THREADS": config_serializable["THREADS"],
+#         "seed": config_serializable["seed"],
+#         # Data Configuration
+#         "data_ds": config_serializable["data_ds"],
+#         "data_dir": config_serializable["data_dir"],
+#         "train_dir": config_serializable["train_dir"],
+#         "val_dir": config_serializable["val_dir"],
+#         "test_dir": config_serializable["test_dir"],
+#     }
+
+#     # Add vocabulary configuration if approach is simple/rnn
+#     if config_serializable["approach"] in ["simple", "rnn"]:
+#         vocab_config = {
+#             # Vocabulary Configuration
+#             "vocab_size": config_serializable["vocab_size"],
+#             "vocab_space": config_serializable["vocab_space"],
+#             "vocab_case": config_serializable["vocab_case"],
+#             "vocab": "<Vocab Object>",
+#             "wvs": "<Embedding Matrix>",
+#             # DataLoader Configuration
+#             "train_loader": "<LoaderSimple Object>",
+#             "val_loader": "<LoaderSimple Object>",
+#             "test_loader": "<LoaderSimple Object>",
+#         }
+#         ordered_config.update(vocab_config)
+
+#     # Add BERT-specific configuration if approach is bert
+#     elif config_serializable["approach"] == "bert":
+#         bert_config = {
+#             # BERT Architecture Parameters
+#             "vocab_size": config_serializable["vocab_size"],
+#             "hidden_size": config_serializable["hidden_size"],
+#             "num_hidden_layers": config_serializable["num_hidden_layers"],
+#             "num_attention_heads": config_serializable["num_attention_heads"],
+#             "intermediate_size": config_serializable["intermediate_size"],
+#             "hidden_act": config_serializable["hidden_act"],
+#             "hidden_dropout_prob": config_serializable["hidden_dropout_prob"],
+#             "attention_probs_dropout_prob": config_serializable[
+#                 "attention_probs_dropout_prob"
+#             ],
+#             "max_position_embeddings": config_serializable["max_position_embeddings"],
+#             "type_vocab_size": config_serializable["type_vocab_size"],
+#             "initializer_range": config_serializable["initializer_range"],
+#             "layer_norm_eps": config_serializable["layer_norm_eps"],
+#             "pad_token_id": config_serializable["pad_token_id"],
+#             "gradient_checkpointing": config_serializable["gradient_checkpointing"],
+#             # Objects (displayed as string representations)
+#             "tokenizer": "<BERT Tokenizer Object>",
+#             "train_loader": "<LoaderBert Object>",
+#             "val_loader": "<LoaderBert Object>",
+#             "test_loader": "<LoaderBert Object>",
+#         }
+#         ordered_config.update(bert_config)
+
+#     # Add training configuration for all approaches
+#     ordered_config.update(
+#         {
+#             # Training Configuration
+#             "batch": config_serializable["batch"],
+#             "lr": config_serializable["lr"],
+#             "mu": config_serializable["mu"],
+#             "epochs": config_serializable["epochs"],
+#             "patience": config_serializable["patience"],
+#             "save_int": config_serializable["save_int"],
+#             "save_dir": config_serializable["save_dir"],
+#             "save_name": config_serializable["save_name"],
+#         }
+#     )
+
+#     # Add RNN-specific configuration if applicable
+#     if config_serializable["approach"] == "rnn":
+#         rnn_config = {
+#             # RNN Parameters
+#             "hidden_dim": config_serializable["hidden_dim"],
+#             "rnn_layers": config_serializable["rnn_layers"],
+#             "dropout_rate": config_serializable["dropout_rate"],
+#             "nonlinearity": config_serializable["nonlinearity"],
+#         }
+#         ordered_config.update(rnn_config)
+
+#     print(f"\nConfiguration for {config_serializable['approach'].upper()} approach:")
+#     print(json.dumps(ordered_config, indent=2))
+
+
 def display_config(config):
-    """Display the current configuration settings."""
-    config_serializable = copy.deepcopy(config)
-    config_serializable["DEVICE"] = str(config_serializable["DEVICE"])
-
-    # Base configuration that exists for all approaches
-    ordered_config = {
-        # Environment Info
-        "env": config_serializable["env"],
-        "approach": config_serializable["approach"],
-        # Model Info
-        "model_base": config_serializable["model_base"],
-        "model_name": config_serializable["model_name"],
-        # Context Parameters
-        "rows": config_serializable["rows"],
-        "cols": config_serializable["cols"],
-        "tokens": config_serializable["tokens"],
-        # System Configuration
-        "DEVICE": config_serializable["DEVICE"],
-        "THREADS": config_serializable["THREADS"],
-        "seed": config_serializable["seed"],
-        # Data Configuration
-        "data_ds": config_serializable["data_ds"],
-        "data_dir": config_serializable["data_dir"],
-        "train_dir": config_serializable["train_dir"],
-        "val_dir": config_serializable["val_dir"],
-        "test_dir": config_serializable["test_dir"],
+    """Display configuration in a readable format."""
+    serializable_config = {
+        k: (
+            v
+            if isinstance(v, (str, int, float, bool, type(None)))
+            else f"<{v.__class__.__name__}>"
+        )
+        for k, v in config.items()
     }
-
-    # Add vocabulary configuration if approach is simple/rnn
-    if config_serializable["approach"] in ["simple", "rnn"]:
-        vocab_config = {
-            # Vocabulary Configuration
-            "vocab_size": config_serializable["vocab_size"],
-            "vocab_space": config_serializable["vocab_space"],
-            "vocab_case": config_serializable["vocab_case"],
-            "vocab": "<Vocab Object>",
-            "wvs": "<Embedding Matrix>",
-            # DataLoader Configuration
-            "train_loader": "<LoaderSimple Object>",
-            "val_loader": "<LoaderSimple Object>",
-            "test_loader": "<LoaderSimple Object>",
-        }
-        ordered_config.update(vocab_config)
-
-    # Add BERT-specific configuration if approach is bert
-    elif config_serializable["approach"] == "bert":
-        bert_config = {
-            # BERT Architecture Parameters
-            "vocab_size": config_serializable["vocab_size"],
-            "hidden_size": config_serializable["hidden_size"],
-            "num_hidden_layers": config_serializable["num_hidden_layers"],
-            "num_attention_heads": config_serializable["num_attention_heads"],
-            "intermediate_size": config_serializable["intermediate_size"],
-            "hidden_act": config_serializable["hidden_act"],
-            "hidden_dropout_prob": config_serializable["hidden_dropout_prob"],
-            "attention_probs_dropout_prob": config_serializable[
-                "attention_probs_dropout_prob"
-            ],
-            "max_position_embeddings": config_serializable["max_position_embeddings"],
-            "type_vocab_size": config_serializable["type_vocab_size"],
-            "initializer_range": config_serializable["initializer_range"],
-            "layer_norm_eps": config_serializable["layer_norm_eps"],
-            "pad_token_id": config_serializable["pad_token_id"],
-            "gradient_checkpointing": config_serializable["gradient_checkpointing"],
-            # Objects (displayed as string representations)
-            "tokenizer": "<BERT Tokenizer Object>",
-            "train_loader": "<LoaderBert Object>",
-            "val_loader": "<LoaderBert Object>",
-            "test_loader": "<LoaderBert Object>",
-        }
-        ordered_config.update(bert_config)
-
-    # Add training configuration for all approaches
-    ordered_config.update(
-        {
-            # Training Configuration
-            "batch": config_serializable["batch"],
-            "lr": config_serializable["lr"],
-            "mu": config_serializable["mu"],
-            "epochs": config_serializable["epochs"],
-            "patience": config_serializable["patience"],
-            "save_int": config_serializable["save_int"],
-            "save_dir": config_serializable["save_dir"],
-            "save_name": config_serializable["save_name"],
-        }
-    )
-
-    # Add RNN-specific configuration if applicable
-    if config_serializable["approach"] == "rnn":
-        rnn_config = {
-            # RNN Parameters
-            "hidden_dim": config_serializable["hidden_dim"],
-            "rnn_layers": config_serializable["rnn_layers"],
-            "dropout_rate": config_serializable["dropout_rate"],
-            "nonlinearity": config_serializable["nonlinearity"],
-        }
-        ordered_config.update(rnn_config)
-
-    print(f"\nConfiguration for {config_serializable['approach'].upper()} approach:")
-    print(json.dumps(ordered_config, indent=2))
+    print(json.dumps(serializable_config, indent=2))
