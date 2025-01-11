@@ -1,10 +1,10 @@
 # Imports
-import os  # For file and directory operations
-import time  # For generating the timestamp in filenames
-import torch  # Core PyTorch library
-import torch.nn as nn  # For defining loss functions
-import math  # For calculating exponential in perplexity calculation
-from tqdm import tqdm  # For progress bars in training and validation loops
+import os
+import time
+import torch
+import torch.nn as nn
+import math
+from tqdm import tqdm
 import sys
 from sklearn.metrics import precision_score, recall_score, f1_score
 
@@ -76,18 +76,11 @@ def train_unified(
         val_data, batch_size=batch_size, shuffle=False
     )
 
-    # Calculate class imbalance
-    num_bold_cells = sum(
-        (batch["y_tok"][:, :, :, 6] == 1).sum() for batch in train_loader
-    )
-    num_nonbold_cells = sum(
-        (batch["y_tok"][:, :, :, 6] == 0).sum() for batch in train_loader
-    )
-    class_imbalance = num_nonbold_cells / num_bold_cells
-
-    # Setup loss function
+    # Setup loss function with ratio of nb to b cells retrieved from original loader for training
     loss_fn = nn.BCEWithLogitsLoss(
-        pos_weight=torch.tensor([class_imbalance], dtype=torch.float).to(DEVICE)
+        pos_weight=torch.tensor([train_data.get_imbalance()], dtype=torch.float).to(
+            DEVICE
+        )
     )
 
     # Initialize training variables
