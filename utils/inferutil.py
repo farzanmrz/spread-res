@@ -17,6 +17,7 @@ from tqdm import tqdm
 import numpy as np
 import operator
 from torch.cuda import set_device
+from IPython.display import display
 
 ## 3 Main funcs for inference of a single example, inference of all examples or subset, testing different thresholds and label conditions for all examples or subset
 
