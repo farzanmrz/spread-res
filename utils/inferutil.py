@@ -1,4 +1,3 @@
-
 # Import commands
 import os
 import random
@@ -6,7 +5,13 @@ import pandas as pd
 import torch
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+)
 from joblib import Parallel, delayed
 from tqdm import tqdm
 import numpy as np
@@ -14,6 +19,7 @@ import operator
 from torch.cuda import set_device
 
 ## 3 Main funcs for inference of a single example, inference of all examples or subset, testing different thresholds and label conditions for all examples or subset
+
 
 # Helper func to calculate and get metrics
 def get_metrics(pred_labels, act_labels):
@@ -29,7 +35,7 @@ def get_metrics(pred_labels, act_labels):
               and the confusion matrix.
     """
     # Convert to numpy arrays for metric calculations
-    pred_np = pred_labels.cpu().numpy().flatten() 
+    pred_np = pred_labels.cpu().numpy().flatten()
     act_np = act_labels.cpu().numpy().flatten()
 
     # Return metrics dictionary with inline calculations
@@ -42,35 +48,49 @@ def get_metrics(pred_labels, act_labels):
         "pred_non_bold_count": (pred_labels == 0).sum().item(),
         "act_bold_count": (act_labels == 1).sum().item(),
         "act_non_bold_count": (act_labels == 0).sum().item(),
-        "confusion_matrix": confusion_matrix(act_np, pred_np, labels=[0, 1])
+        "confusion_matrix": confusion_matrix(act_np, pred_np, labels=[0, 1]),
     }
 
-def infer_one(trained_model, infer_loader, loc=0, threshold=0.5, condition = '>', disp_max=False, device='cuda:0'):
+
+def infer_one(
+    trained_model,
+    infer_loader,
+    loc=0,
+    threshold=0.5,
+    condition=">",
+    disp_max=False,
+    device="cuda:0",
+):
     # Set pandas display options
-    [pd.set_option(opt, None) if disp_max else pd.reset_option(opt) for opt in ['display.max_rows', 'display.max_columns']]
+    [
+        pd.set_option(opt, None) if disp_max else pd.reset_option(opt)
+        for opt in ["display.max_rows", "display.max_columns"]
+    ]
 
     # Define valid conditions
     conditions = {
-        '>': operator.gt,
-        '>=': operator.ge,
-        '<': operator.lt,
-        '<=': operator.le,
-        '==': operator.eq,
-        '!=': operator.ne
+        ">": operator.gt,
+        ">=": operator.ge,
+        "<": operator.lt,
+        "<=": operator.le,
+        "==": operator.eq,
+        "!=": operator.ne,
     }
     if condition not in conditions:
-        raise ValueError(f"Invalid condition '{condition}'. Must be one of {list(conditions.keys())}.")
+        raise ValueError(
+            f"Invalid condition '{condition}'. Must be one of {list(conditions.keys())}."
+        )
 
     # Perform inference
     trained_model.eval()
     with torch.no_grad():
         predictions = trained_model(infer_loader.x_tok[loc].unsqueeze(0).to(device))
     pred_probs = torch.sigmoid(predictions.squeeze(0))
-    
+
     # Apply the condition to compute pred_labels
     pred_labels = conditions[condition](pred_probs, threshold).long()
 
-   # pred_labels = (pred_probs > threshold).long()
+    # pred_labels = (pred_probs > threshold).long()
     act_labels = torch.tensor(infer_loader.y_tok[loc][:, :, 6].numpy()).to(device)
     metrics = get_metrics(pred_labels, act_labels)
 
@@ -78,7 +98,9 @@ def infer_one(trained_model, infer_loader, loc=0, threshold=0.5, condition = '>'
     print(f"\nFilename: {infer_loader.file_paths[loc]}")
 
     # --- Unique Sigmoid Values for Bold Cells ---
-    bold_indices = torch.nonzero(act_labels == 1, as_tuple=False)  # Get locations of bold cells
+    bold_indices = torch.nonzero(
+        act_labels == 1, as_tuple=False
+    )  # Get locations of bold cells
     print("\n--- Unique Sigmoid Probabilities for Bold Cells ---")
     if len(bold_indices) > 0:
         # Dictionary to store unique sigmoid values and one example location
@@ -87,10 +109,15 @@ def infer_one(trained_model, infer_loader, loc=0, threshold=0.5, condition = '>'
             row, col = idx.tolist()
             sigmoid_value = pred_probs[row, col].item()
             if sigmoid_value not in unique_sigmoids:
-                unique_sigmoids[sigmoid_value] = (row, col)  # Store the first occurrence
-        
+                unique_sigmoids[sigmoid_value] = (
+                    row,
+                    col,
+                )  # Store the first occurrence
+
         # Sort the dictionary by sigmoid values in ascending order
-        sorted_sigmoids = sorted(unique_sigmoids.items(), key=lambda x: x[0], reverse=False)
+        sorted_sigmoids = sorted(
+            unique_sigmoids.items(), key=lambda x: x[0], reverse=False
+        )
 
         # Print unique sigmoid values with example locations
         for value, location in sorted_sigmoids:
@@ -110,14 +137,18 @@ def infer_one(trained_model, infer_loader, loc=0, threshold=0.5, condition = '>'
     plt.figure(figsize=(6, 4))
     sns.heatmap(
         cm,
-        annot=[["TN\n" + str(cm[0, 0]), "FP\n" + str(cm[0, 1])],
-               ["FN\n" + str(cm[1, 0]), "TP\n" + str(cm[1, 1])]],
+        annot=[
+            ["TN\n" + str(cm[0, 0]), "FP\n" + str(cm[0, 1])],
+            ["FN\n" + str(cm[1, 0]), "TP\n" + str(cm[1, 1])],
+        ],
         fmt="",
         cmap="Blues",
         xticklabels=["NB(0)", "B(1)"],
-        yticklabels=["NB(0)", "B(1)"]
+        yticklabels=["NB(0)", "B(1)"],
     )
-    plt.xlabel("Predicted"), plt.ylabel("Actual"), plt.title("BOLD Cell Prediction CM"), plt.show()
+    plt.xlabel("Predicted"), plt.ylabel("Actual"), plt.title(
+        "BOLD Cell Prediction CM"
+    ), plt.show()
 
     # Display filtered grids separately
     pred_np, act_np = pred_labels.cpu().numpy(), act_labels.cpu().numpy()
@@ -233,28 +264,40 @@ def infer_full(
     plt.xlabel("Predicted"), plt.ylabel("Actual"), plt.title(
         "BOLD Cell Prediction CM"
     ), plt.show()
-    
-    
 
-def binfer_one(trained_model, infer_loader, loc=0, threshold=0.5, condition='>', disp_max=False, device='cuda:0'):
+
+def binfer_one(
+    trained_model,
+    infer_loader,
+    loc=0,
+    threshold=0.5,
+    condition=">",
+    disp_max=False,
+    device="cuda:0",
+):
     """
     Same functionality as infer_one but adapted for BERT models that require attention masks.
     Displays metrics and visualizations for single example inference without returning values.
     """
     # Set pandas display options for output
-    [pd.set_option(opt, None) if disp_max else pd.reset_option(opt) for opt in ['display.max_rows', 'display.max_columns']]
+    [
+        pd.set_option(opt, None) if disp_max else pd.reset_option(opt)
+        for opt in ["display.max_rows", "display.max_columns"]
+    ]
 
     # Define valid conditions for prediction thresholding
     conditions = {
-        '>': operator.gt,
-        '>=': operator.ge,
-        '<': operator.lt,
-        '<=': operator.le,
-        '==': operator.eq,
-        '!=': operator.ne
+        ">": operator.gt,
+        ">=": operator.ge,
+        "<": operator.lt,
+        "<=": operator.le,
+        "==": operator.eq,
+        "!=": operator.ne,
     }
     if condition not in conditions:
-        raise ValueError(f"Invalid condition '{condition}'. Must be one of {list(conditions.keys())}.")
+        raise ValueError(
+            f"Invalid condition '{condition}'. Must be one of {list(conditions.keys())}."
+        )
 
     # Perform inference with BERT model in evaluation mode
     trained_model.eval()
@@ -262,14 +305,14 @@ def binfer_one(trained_model, infer_loader, loc=0, threshold=0.5, condition='>',
         # Get predictions using both input ids and attention masks
         predictions = trained_model(
             infer_loader.x_tok[loc].unsqueeze(0).to(device),
-            infer_loader.x_masks[loc].unsqueeze(0).to(device)
+            infer_loader.x_masks[loc].unsqueeze(0).to(device),
         )
-    
+
     # Process predictions and get actual labels
     pred_probs = torch.sigmoid(predictions.squeeze(0))
     pred_labels = conditions[condition](pred_probs, threshold).long()
     act_labels = torch.tensor(infer_loader.y_tok[loc][:, :, 6].numpy()).to(device)
-    
+
     # Calculate metrics for this prediction
     metrics = get_metrics(pred_labels, act_labels)
 
@@ -286,8 +329,10 @@ def binfer_one(trained_model, infer_loader, loc=0, threshold=0.5, condition='>',
             sigmoid_value = pred_probs[row, col].item()
             if sigmoid_value not in unique_sigmoids:
                 unique_sigmoids[sigmoid_value] = (row, col)
-        
-        for value, location in sorted(unique_sigmoids.items(), key=lambda x: x[0], reverse=False):
+
+        for value, location in sorted(
+            unique_sigmoids.items(), key=lambda x: x[0], reverse=False
+        ):
             row, col = location
             print(f"({row},{col}): {value:.20f}")
     else:
@@ -306,14 +351,18 @@ def binfer_one(trained_model, infer_loader, loc=0, threshold=0.5, condition='>',
     plt.figure(figsize=(6, 4))
     sns.heatmap(
         cm,
-        annot=[["TN\n" + str(cm[0, 0]), "FP\n" + str(cm[0, 1])],
-               ["FN\n" + str(cm[1, 0]), "TP\n" + str(cm[1, 1])]],
+        annot=[
+            ["TN\n" + str(cm[0, 0]), "FP\n" + str(cm[0, 1])],
+            ["FN\n" + str(cm[1, 0]), "TP\n" + str(cm[1, 1])],
+        ],
         fmt="",
         cmap="Blues",
         xticklabels=["NB(0)", "B(1)"],
-        yticklabels=["NB(0)", "B(1)"]
+        yticklabels=["NB(0)", "B(1)"],
     )
-    plt.xlabel("Predicted"), plt.ylabel("Actual"), plt.title("BERT BOLD Cell Prediction CM"), plt.show()
+    plt.xlabel("Predicted"), plt.ylabel("Actual"), plt.title(
+        "BERT BOLD Cell Prediction CM"
+    ), plt.show()
 
     # Process and display filtered prediction grids
     pred_np, act_np = pred_labels.cpu().numpy(), act_labels.cpu().numpy()
@@ -341,7 +390,10 @@ def binfer_one(trained_model, infer_loader, loc=0, threshold=0.5, condition='>',
     else:
         print("No bold cells in actual data.")
 
-def binfer_full(trained_model, infer_loader, batch_size=8, threshold=0.5, device="cuda:0"):
+
+def binfer_full(
+    trained_model, infer_loader, batch_size=8, threshold=0.5, device="cuda:0"
+):
     """
     Runs inference on a dataset with batching for BERT models, computes average metrics across all files, and handles class imbalance.
 
@@ -379,10 +431,7 @@ def binfer_full(trained_model, infer_loader, batch_size=8, threshold=0.5, device
         with torch.no_grad():
             # Pass both input ids and attention masks to the model
             pred_probs = torch.sigmoid(
-                trained_model(
-                    batch["x_tok"].to(device),
-                    batch["x_masks"].to(device)
-                )
+                trained_model(batch["x_tok"].to(device), batch["x_masks"].to(device))
             )
 
         # Flatten both labels
