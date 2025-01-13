@@ -110,6 +110,23 @@ class Loader(torch.utils.data.Dataset):
             'x_tok': self.x_tok[index], 'x_masks': self.x_masks[index], 'y_tok': self.y_tok[index], 'file_paths': self.file_paths[index]
         }
 
+    def get_imbalance( self ):
+        """Calculate the imbalance ratio of non-bold to bold cells.
+
+        Returns:
+            float: Ratio of non-bold to bold cells
+
+        Raises:
+            ValueError: If no bold cells are found in the dataset
+        """
+        # Get bold cell count
+        bold_count = sum((tensor[ :, :, 6 ] == 1).sum().item() for tensor in self.y_tok)
+
+        # No bold raise error else return
+        if not bold_count:
+            raise ValueError("No bold cells found in the dataset. Cannot calculate imbalance ratio.")
+
+        return sum((tensor[ :, :, 6 ] == 0).sum().item() for tensor in self.y_tok) / bold_count
 
 class LoaderSimple(Loader):
     """Vocabulary-based spreadsheet loader."""
