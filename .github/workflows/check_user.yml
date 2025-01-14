@@ -1,0 +1,48 @@
+# Name of the workflow as displayed in GitHub Actions UI
+name: Restrict Repository Access
+
+# Specific run instance name
+run-name: checking_user
+
+# Events that trigger this workflow
+on:
+
+  # Triggers on any push to any branch
+  push:
+    branches:
+      - '**'
+
+  # Triggers on specific pull request events
+  pull_request:
+    types: [opened, reopened, edited]
+
+  # Triggers when new branch or tag is created
+  create:
+
+  # Triggers when branch or tag is deleted
+  delete:
+
+# Define workflow jobs
+jobs:
+
+  # Job to restrict repository access
+  restrict-access:
+
+    # Specify runner environment
+    runs-on: ubuntu-latest
+
+    # Define sequential steps
+    steps:
+
+      # Verify user authorization
+      - name: Check if actor is authorized
+
+        # Execute authorization check
+        run: |
+          if [[ "${{ github.actor }}" != "farzanmrz" ]]; then
+            echo "Unauthorized action by ${{ github.actor }}. Only farzanmrz can perform write actions."
+            exit 1
+          fi
+
+        # Specify shell for execution
+        shell: bash
