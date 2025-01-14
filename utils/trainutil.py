@@ -225,7 +225,7 @@ def setup_logging(save_int, save_dir, save_name, config):
         config: Configuration dictionary for model
 
     Returns:
-        tuple: (model_path, log_file) or (None, None) if saving disabled
+        tuple: (model_path, log_file) or (None, None) if saving disable
     """
     # Common setup
     torch.set_printoptions(profile="full")
