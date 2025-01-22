@@ -1,14 +1,15 @@
 # Imports
+import copy
+import json
+import math
 import os
+import sys
 import time
+
 import torch
 import torch.nn as nn
-import math
+from sklearn.metrics import f1_score, precision_score, recall_score
 from tqdm import tqdm
-import sys
-from sklearn.metrics import precision_score, recall_score, f1_score
-import json
-import copy
 
 
 def train_model(
@@ -17,11 +18,11 @@ def train_model(
     val_data,
     DEVICE,
     batch_size=8,
-    lr=1e-3,
+    lr=1.4e-5,
     mu=0.25,
     max_epochs=4,
-    patience=2,
-    save_int=0,
+    patience=3,
+    save_int=2,
     save_dir="../models/",
     save_name="model_",
     config=None,
@@ -30,120 +31,152 @@ def train_model(
     Unified training function that handles both BERT and non-BERT models.
     """
 
-    # Setup logging and paths
+    # ---------- 1. SETUP ----------#
+
+    # 1a. LOGGING MODEL PATH AND FILE
     model_path, log_file = setup_logging(save_int, save_dir, save_name, config)
 
-    # Setup training parameters
-    (
-        opt,
-        train_loader,
-        val_loader,
-        loss_fn,
-        epoch,
-        best_avgtrloss,
-        best_perp,
-        best_epoch,
-        best_avgvalloss,
-        best_valperp,
-        nimp_ctr,
-        training,
-    ) = setup_trainingparams(model, train_data, val_data, lr, batch_size, DEVICE)
+    # 1b. OPTIMIZER
+    opt = torch.optim.Adagrad(model.parameters(), lr=lr)
 
-    # Main training loop
-    while training and (epoch < max_epochs):
+    # 1c. DATALOADERS
+    train_loader = torch.utils.data.DataLoader(
+        train_data, batch_size=batch_size, shuffle=True
+    )
+    val_loader = torch.utils.data.DataLoader(
+        val_data, batch_size=batch_size, shuffle=False
+    )
+
+    # 1d. LOSS FUNCTION
+    loss_fn = nn.BCEWithLogitsLoss(
+        pos_weight=torch.tensor([train_data.get_imbalance()], dtype=torch.float).to(
+            DEVICE
+        )
+    )
+
+    # 1e. INITIAL TRACKING VARIABLES
+    epoch = 0
+    best_epoch = 0
+    nimp_ctr = 0
+    best_avgtrloss = float("inf")
+    best_avgvalloss = float("inf")
+    best_perp = float("inf")
+    best_valperp = float("inf")
+    isTraining = True
+
+    # ---------- 2. MODEL MAIN LOOP ----------#
+
+    # While isTraining True and max epochs is not reached keep training model
+    while isTraining and (epoch < max_epochs):
+
+        # Print epoch number. Log if applicable
         print(f"Epoch {epoch}")
         if save_int > 0:
             with open(log_file, "a") as log:
                 log.write(f"\nEpoch {epoch}\n")
 
-        curr_trloss, curr_valloss = 0, 0
+        # Define initial values of current train/val loss for the epoch
+        curr_trloss = 0
+        curr_valloss = 0
+
+        # ---------- 3. TRAINING LOOP ----------#
+
+        # Shift model to training mode
         model.train()
 
-        # Training step
+        # Loop through all batches in train loader
         for i, batch in enumerate(tqdm(train_loader, desc="Batch Processing")):
 
-            # Zero the model gradients and set_to_none true to avoid 0 matrices when no grads
+            # Zero the model gradients and avoid 0 matrices when no grads
             model.zero_grad(set_to_none=True)
 
-            # Get logits/labels as per model type
+            # Forward pass through helper function since model type dependent
             logits, labels = get_logitlabels(model, batch, config, DEVICE)
 
-            # Get the loss
+            # Calculate loss using loss function
             loss = loss_fn(logits, labels)
 
-            # Accumulate to the current training loss
+            # Add to current training loss on CPU to reduce GPU memory usage
             curr_trloss += loss.detach().cpu().item()
 
-            # Backpropogate loss
+            # Backpropogate the loss
             loss.backward()
 
-            # Clip gradients and step optimizer then delete loss param
+            # Clip gradients using passed mu value
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=mu)
+
+            # Step optimizer
             opt.step()
+
+            # Delete loss parameter to free memory
             del loss
 
-        # Validation step
+        # ---------- 4. VALIDATION LOOP ----------#
+
+        # Switch model to evaluation mode
         model.eval()
+
+        # Loop through all batches in validation loader
         for i, batch in enumerate(tqdm(val_loader, desc="Validation Processing")):
 
             # Disable gradients
             with torch.no_grad():
 
-                # Get logits/labels as per model type
+                # Forward pass through helper function since model type dependent
                 val_logits, val_labels = get_logitlabels(model, batch, config, DEVICE)
+
+                # Calculate validation loss
                 val_loss = loss_fn(val_logits, val_labels)
+
+                # Add to current validation loss on CPU to reduce GPU memory usage
                 curr_valloss += val_loss.detach().cpu().item()
 
         # Calculate metrics and handle early stopping
-        curr_avgtrloss, curr_perp = calculate_metrics(
-            curr_trloss, len(train_loader), batch_size
+        curr_avgtrloss = curr_trloss / len(train_loader)
+        curr_perp = math.exp(
+            curr_trloss
+            / (len(train_loader) * batch_size * config["rows"] * config["cols"])
         )
-        curr_avgvalloss, curr_valperp = calculate_metrics(
-            curr_valloss, len(val_loader), batch_size
-        )
-
-        # Get updated best metrics
-        (
-            best_perp,
-            best_valperp,
-            best_avgtrloss,
-            best_avgvalloss,
-            best_epoch,
-            nimp_ctr,
-        ) = log_metrics(
-            curr_avgtrloss,
-            curr_perp,
-            curr_avgvalloss,
-            curr_valperp,
-            epoch,
-            best_epoch,
-            best_avgtrloss,
-            best_perp,
-            best_avgvalloss,
-            best_valperp,
-            nimp_ctr,
-            save_int,
-            log_file,
+        curr_avgvalloss = curr_valloss / len(val_loader)
+        curr_valperp = math.exp(
+            curr_valloss
+            / (len(val_loader) * batch_size * config["rows"] * config["cols"])
         )
 
-        # Check if no improvement counter exceeds patience level
+        # Print and log metrics
+        print(f"Train Loss: {curr_avgtrloss}, Perplexity: {curr_perp}")
+        print(f"Val Loss: {curr_avgvalloss}, Perplexity: {curr_valperp}\n")
+        if save_int > 0:
+            with open(log_file, "a") as log:
+                log.write(f"Train Loss: {curr_avgtrloss}, Perplexity: {curr_perp}\n")
+                log.write(f"Val Loss: {curr_avgvalloss}, Perplexity: {curr_valperp}\n")
+
+        # Early stopping logic
+        if curr_valperp < best_valperp:
+            best_perp = curr_perp
+            best_valperp = curr_valperp
+            best_avgtrloss = curr_avgtrloss
+            best_avgvalloss = curr_avgvalloss
+            best_epoch = epoch
+            nimp_ctr = 0
+        else:
+            nimp_ctr += 1
+
         if nimp_ctr >= patience:
-            log_metrics(
-                curr_avgtrloss,
-                curr_perp,
-                curr_avgvalloss,
-                curr_valperp,
-                epoch,
-                best_epoch,
-                best_avgtrloss,
-                best_perp,
-                best_avgvalloss,
-                best_valperp,
-                nimp_ctr,
-                save_int,
-                log_file,
-                early_stopped=True,
-            )
+            print(f"\nEARLY STOPPING at epoch {epoch}, best epoch {best_epoch}")
+            print(f"Train Loss = {best_avgtrloss}, Perplexity = {best_perp}")
+            print(f"Val Loss = {best_avgvalloss}, Perplexity = {best_valperp}")
+            if save_int > 0:
+                with open(log_file, "a") as log:
+                    log.write(
+                        f"\nEARLY STOPPING at epoch {epoch}, best epoch {best_epoch}\n"
+                    )
+                    log.write(
+                        f"Train Loss = {best_avgtrloss}, Perplexity = {best_perp}\n"
+                    )
+                    log.write(
+                        f"Val Loss = {best_avgvalloss}, Perplexity = {best_valperp}\n"
+                    )
             training = False
 
         # Save model if needed
@@ -156,23 +189,18 @@ def train_model(
         epoch += 1
         print()
 
-    # Final metrics logging
-    log_metrics(
-        curr_avgtrloss,
-        curr_perp,
-        curr_avgvalloss,
-        curr_valperp,
-        epoch - 1,
-        best_epoch,
-        best_avgtrloss,
-        best_perp,
-        best_avgvalloss,
-        best_valperp,
-        nimp_ctr,
-        save_int,
-        log_file,
-        is_final=True,
-    )
+    # Final print
+    print(f"\nTRAINING DONE at epoch {epoch-1}, best epoch {best_epoch}")
+    print(f"Train Loss = {best_avgtrloss}, Perplexity = {best_perp}")
+    print(f"Val Loss = {best_avgvalloss}, Perplexity = {best_valperp}")
+
+    # Final save and logging
+    if save_int > 0:
+        torch.save(model.state_dict(), model_path)
+        with open(log_file, "a") as log:
+            log.write(f"\nTRAINING DONE at epoch {epoch-1}, best epoch {best_epoch}\n")
+            log.write(f"Train Loss = {best_avgtrloss}, Perplexity = {best_perp}\n")
+            log.write(f"Val Loss = {best_avgvalloss}, Perplexity = {best_valperp}\n")
 
     return model
 
@@ -189,30 +217,17 @@ def get_logitlabels(model, batch, config, DEVICE):
     Returns:
         tuple: (logits, labels)
     """
-    # Forward pass differs based on model type
+    # Forward pass differs based on model type for logits
     if config.get("approach") == "bert":
         logits = model(batch["x_tok"].to(DEVICE), batch["x_masks"].to(DEVICE)).view(-1)
     else:
         logits = model(batch["x_tok"].to(DEVICE)).view(-1)
 
+    # Get labels also
     labels = batch["y_tok"][:, :, :, 6].to(DEVICE).view(-1).float()
+
+    # Return both
     return logits, labels
-
-
-def calculate_metrics(loss_sum, num_batches, batch_size):
-    """Calculate average loss and perplexity metrics.
-
-    Args:
-        loss_sum: Sum of losses across batches
-        num_batches: Number of batches
-        batch_size: Size of each batch
-
-    Returns:
-        tuple: (average_loss, perplexity)
-    """
-    avg_loss = loss_sum / num_batches
-    perplexity = math.exp(loss_sum / (num_batches * batch_size * 2500))
-    return avg_loss, perplexity
 
 
 def setup_logging(save_int, save_dir, save_name, config):
@@ -263,164 +278,5 @@ def setup_logging(save_int, save_dir, save_name, config):
             log.write(json.dumps(config_serializable, indent=2))
             log.write("\n\n" + "=" * 80 + "\n\n")
 
+    # Return final modle path and log file
     return model_path, log_file
-
-
-def setup_trainingparams(model, train_data, val_data, lr, batch_size, DEVICE):
-    """Setup training parameters including optimizer, dataloaders, loss function and initial tracking variables.
-
-    Args:
-        model: The model to train
-        train_data: Training dataset
-        val_data: Validation dataset
-        lr: Learning rate
-        batch_size: Batch size for training
-        DEVICE: Device to use for training
-
-    Returns:
-        tuple: (optimizer, train_loader, val_loader, loss_fn, epoch, best_avgtrloss,
-               best_perp, best_epoch, best_avgvalloss, best_valperp, nimp_ctr, training)
-    """
-    # Setup optimizer and data loaders
-    opt = torch.optim.Adagrad(model.parameters(), lr=lr)
-    train_loader = torch.utils.data.DataLoader(
-        train_data, batch_size=batch_size, shuffle=True
-    )
-    val_loader = torch.utils.data.DataLoader(
-        val_data, batch_size=batch_size, shuffle=False
-    )
-
-    # Setup loss function with class imbalance weighting
-    loss_fn = nn.BCEWithLogitsLoss(
-        pos_weight=torch.tensor([train_data.get_imbalance()], dtype=torch.float).to(
-            DEVICE
-        )
-    )
-
-    # Initialize training variables
-    epoch = 0
-    best_avgtrloss = float("inf")
-    best_perp = float("inf")
-    best_epoch = 0
-    best_avgvalloss = float("inf")
-    best_valperp = float("inf")
-    nimp_ctr = 0
-    training = True
-
-    return (
-        opt,
-        train_loader,
-        val_loader,
-        loss_fn,
-        epoch,
-        best_avgtrloss,
-        best_perp,
-        best_epoch,
-        best_avgvalloss,
-        best_valperp,
-        nimp_ctr,
-        training,
-    )
-
-
-def log_metrics(
-    curr_avgtrloss,
-    curr_perp,
-    curr_avgvalloss,
-    curr_valperp,
-    epoch,
-    best_epoch,
-    best_avgtrloss,
-    best_perp,
-    best_avgvalloss,
-    best_valperp,
-    nimp_ctr,
-    save_int,
-    log_file,
-    is_final=False,
-    early_stopped=False,
-):
-    """Handle metric updates and logging during model training.
-
-    Handles both updating best metric values during training and logging metrics to console
-    and file. During regular training updates, returns updated best values. For final or
-    early stopping logs, only handles printing/logging without returns.
-
-    Args:
-        curr_avgtrloss (float): Current average training loss
-        curr_perp (float): Current training perplexity
-        curr_avgvalloss (float): Current average validation loss
-        curr_valperp (float): Current validation perplexity
-        epoch (int): Current epoch number
-        best_epoch (int): Best epoch so far
-        best_avgtrloss (float): Best average training loss
-        best_perp (float): Best training perplexity
-        best_avgvalloss (float): Best average validation loss
-        best_valperp (float): Best validation perplexity
-        nimp_ctr (int): Counter for epochs without improvement
-        save_int (int): Save interval for logging (if > 0)
-        log_file (str): Path to log file
-        is_final (bool, optional): Whether this is final logging. Defaults to False.
-        early_stopped (bool, optional): Whether early stopping triggered. Defaults to False.
-
-    Returns:
-        tuple or None: If during training updates returns tuple of
-        (best_perp, best_valperp, best_avgtrloss, best_avgvalloss, best_epoch, nimp_ctr),
-        otherwise None
-    """
-
-    # Update best values if improved during regular training
-    if not is_final and not early_stopped:
-        if curr_valperp < best_valperp:
-            # Set new best perplexity values
-            best_perp = curr_perp
-            best_valperp = curr_valperp
-
-            # Set new best loss values
-            best_avgtrloss = curr_avgtrloss
-            best_avgvalloss = curr_avgvalloss
-
-            # Update best epoch and reset no improvement counter
-            best_epoch = epoch
-            nimp_ctr = 0
-        else:
-            # Increment no improvement counter
-            nimp_ctr += 1
-
-    # Set prefix message based on training state
-    if early_stopped:
-        prefix = f"\nEARLY STOPPING at epoch {epoch}, best epoch {best_epoch}"
-    elif is_final:
-        prefix = f"\nTRAINING DONE at epoch {epoch}, best epoch {best_epoch}"
-    else:
-        prefix = f"Epoch {epoch}"
-
-    # Prepare log messages for loss and perplexity
-    messages = [
-        f"Train Loss = {curr_avgtrloss}, Perplexity = {curr_perp}",
-        f"Val Loss = {curr_avgvalloss}, Perplexity = {curr_valperp}\n",
-    ]
-
-    # Print prefix and messages to console
-    print(prefix)
-    for msg in messages:
-        print(msg)
-
-    # Write to log file if saving is enabled
-    if save_int > 0:
-        with open(log_file, "a") as log:
-            # Write prefix and messages to log file
-            log.write(f"\n{prefix}\n")
-            for msg in messages:
-                log.write(f"{msg}\n")
-
-    # Return updated values only during training (not for final/early stop logging)
-    if not is_final and not early_stopped:
-        return (
-            best_perp,
-            best_valperp,
-            best_avgtrloss,
-            best_avgvalloss,
-            best_epoch,
-            nimp_ctr,
-        )
