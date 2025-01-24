@@ -177,7 +177,7 @@ def train_model(
                     log.write(
                         f"Val Loss = {best_avgvalloss}, Perplexity = {best_valperp}\n"
                     )
-            training = False
+            isTraining = False
 
         # Save model if needed
         if save_int > 0 and (epoch + 1) % save_int == 0:

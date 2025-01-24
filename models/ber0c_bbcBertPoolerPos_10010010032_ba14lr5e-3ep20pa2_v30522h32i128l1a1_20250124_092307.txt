@@ -1,0 +1,61 @@
+
+Final configuration:
+{
+  "env": "colab",
+  "approach": "bert",
+  "THREADS": 10,
+  "seed": 0,
+  "model_base": "bert-base-cased",
+  "model_name": "BertPoolerPos",
+  "rows": 100,
+  "cols": 100,
+  "tokens": 32,
+  "data_ds": "100",
+  "data_dir": "../data",
+  "train_dir": "../data/100_train",
+  "val_dir": "../data/100_val",
+  "test_dir": "../data/100_test",
+  "vocab_size": 30522,
+  "hidden_size": 32,
+  "num_hidden_layers": 1,
+  "num_attention_heads": 1,
+  "intermediate_size": 128,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "attention_probs_dropout_prob": 0.1,
+  "max_position_embeddings": 64,
+  "type_vocab_size": 2,
+  "initializer_range": 0.02,
+  "layer_norm_eps": 1e-12,
+  "pad_token_id": 0,
+  "gradient_checkpointing": false,
+  "batch_size": 14,
+  "lr": 0.005,
+  "mu": 0.25,
+  "epochs": 20,
+  "patience": 2,
+  "save_int": 5,
+  "save_dir": "../models/",
+  "save_name": "ber0c_bbcBertPoolerPos_10010010032_ba14lr5e-3ep20pa2_v30522h32i128l1a1"
+}
+
+================================================================================
+
+
+Epoch 0
+Train Loss: 1.210826317469279, Perplexity: 1.0000086487968112
+Val Loss: 0.9166435599327087, Perplexity: 1.000006547475434
+
+Epoch 1
+Train Loss: 0.8634733557701111, Perplexity: 1.000006167685847
+Val Loss: 0.48986929655075073, Perplexity: 1.0000034990725257
+
+Epoch 2
+Train Loss: 0.5056980599959692, Perplexity: 1.0000036121355238
+Val Loss: 0.3335285186767578, Perplexity: 1.0000023823493998
+
+Epoch 3
+Train Loss: 0.35927654802799225, Perplexity: 1.0000025662643501
+Val Loss: 0.2601149082183838, Perplexity: 1.0000018579653562
+
+Epoch 4
