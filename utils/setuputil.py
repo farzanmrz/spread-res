@@ -109,6 +109,9 @@ def h_threads(input_config, config):
 
 def h_seed(input_config, config):
     """Helper function to set seed configuration."""
+    # Set torch printing options
+    torch.set_printoptions(precision=4, sci_mode=False)
+
     # Set seed value in config
     config["seed"] = input_config["seed"]
 
