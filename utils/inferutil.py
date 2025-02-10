@@ -61,6 +61,7 @@ def infer_one(
     threshold=0.5,
     device="cuda:0",
     approach="bert",
+    disp_sig=False,
 ):
     # Set pandas display options
     pd.set_option("display.max_rows", None)
@@ -94,52 +95,55 @@ def infer_one(
 
     ########## BOLD CELLS UNIQUE SIGMOID VALUE DISPLAY ##############
 
-    # Get indices for bold cells in actual data
-    bold_indices = torch.nonzero(act_labels == 1, as_tuple=False)
+    if disp_sig:
 
-    # Print message for showing unique sigmoid values for bold cells
-    print("\n--- Unique Sigmoid Probabilities for Bold Cells ---")
+        # Get indices for bold cells in actual data
+        bold_indices = torch.nonzero(act_labels == 1, as_tuple=False)
 
-    # If there are bold cells in the actual data
-    if len(bold_indices) > 0:
+        # Print message for showing unique sigmoid values for bold cells
+        print("\n--- Unique Sigmoid Probabilities for Bold Cells ---")
 
-        # Create a dict to store unique sigmoid values with example location
-        unique_sigmoids = {}
+        # If there are bold cells in the actual data
+        if len(bold_indices) > 0:
 
-        # Iterate through bold cell indices
-        for idx in bold_indices:
+            # Create a dict to store unique sigmoid values with example location
+            unique_sigmoids = {}
 
-            # Get row and column indices
-            row, col = idx.tolist()
+            # Iterate through bold cell indices
+            for idx in bold_indices:
 
-            # Get the sigmoid value
-            sigmoid_value = pred_probs[row, col].item()
+                # Get row and column indices
+                row, col = idx.tolist()
 
-            # If value not in unique_sigmoids
-            if sigmoid_value not in unique_sigmoids:
+                # Get the sigmoid value
+                sigmoid_value = pred_probs[row, col].item()
 
-                # Store the sigmoid value with the location
-                unique_sigmoids[sigmoid_value] = (row, col)
+                # If value not in unique_sigmoids
+                if sigmoid_value not in unique_sigmoids:
 
-        # Sort the dictionary by sigmoid values in ascending order
-        sorted_sigmoids = sorted(
-            unique_sigmoids.items(), key=lambda x: x[0], reverse=False
-        )
+                    # Store the sigmoid value with the location
+                    unique_sigmoids[sigmoid_value] = (row, col)
 
-        # Print unique sigmoid values with example locations
-        for value, location in sorted_sigmoids:
+            # Sort the dictionary by sigmoid values in ascending order
+            sorted_sigmoids = sorted(
+                unique_sigmoids.items(), key=lambda x: x[0], reverse=False
+            )
 
-            # Get row and column indices
-            row, col = location
+            # Print the row/col location, sigmoid val comma separated
+            print(
+                " | ".join(
+                    [
+                        f"({row},{col}): {value:.6f}"
+                        for value, (row, col) in sorted_sigmoids
+                    ]
+                )
+            )
 
-            # Print the location and sigmoid value
-            print(f"({row},{col}): {value:.20f}")
+        # Else, if no bold cells in the actual data
+        else:
 
-    # Else, if no bold cells in the actual data
-    else:
-
-        # Print message
-        print("No bold cells in the actual data.")
+            # Print message
+            print("No bold cells in the actual data.")
 
     # Display metrics summary
     print(
