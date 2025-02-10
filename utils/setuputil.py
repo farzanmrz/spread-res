@@ -308,7 +308,7 @@ def h_name(config):
     fourth_str = batch_str + lr_str + epochs_str + patience_str + "_"
 
     # 5. Fifth string variable for approach, starting with vocab size
-    fifth_str = "v" + str(config["vocab_size"] // 1000) + "k"
+    fifth_str = "v" + str(config["vocab_size"] // 1000) + "K"
 
     # Construct base string based on these
     base_str = first_str + second_str + third_str + fourth_str + fifth_str
@@ -524,4 +524,4 @@ def display_config(config):
     print(json.dumps(serializable_config, indent=2))
 
     # Print base info needed
-    print(f'\nDEVICE: {config["DEVICE"]}\t|\tTHREADS: {config["THREADS"]}')
+    print(f'\nDEVICE: {config["DEVICE"]}\t| THREADS: {config["THREADS"]}')
