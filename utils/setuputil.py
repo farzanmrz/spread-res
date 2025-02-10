@@ -518,4 +518,10 @@ def display_config(config):
         )
         for k, v in config.items()
     }
+
+    # Print the json as per requirement
+    print(f"\nFINAL CONFIG:")
     print(json.dumps(serializable_config, indent=2))
+
+    # Print base info needed
+    print(f'\nDEVICE: {config["DEVICE"]}\t|\tTHREADS: {config["THREADS"]}')
