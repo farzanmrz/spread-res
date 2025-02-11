@@ -6,7 +6,7 @@ Final configuration:
   "THREADS": 10,
   "seed": 0,
   "model_base": "bert-base-cased",
-  "model_name": "BertPooler",
+  "model_name": "BertSimple",
   "rows": 100,
   "cols": 100,
   "tokens": 32,
@@ -36,7 +36,7 @@ Final configuration:
   "patience": 2,
   "save_int": 10,
   "save_dir": "../models/",
-  "save_name": "ber0c_bbcBertPooler_manual10010032_ba20lr1e-2ep10pa2_v30522h32i128l1a1"
+  "save_name": "ber0cBertSimple_manualba20lr1e-2ep10pa2_v30Kh32i128l1a1_20250122_025516"
 }
 
 ================================================================================
