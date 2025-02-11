@@ -26,6 +26,7 @@ def train_model(
     save_dir="../models/",
     save_name="model_",
     config=None,
+    isPerp=False,
 ):
     """
     Unified training function that handles both BERT and non-BERT models.
@@ -144,8 +145,13 @@ def train_model(
         )
 
         # Print and log metrics
-        print(f"Train Loss: {curr_avgtrloss}, Perplexity: {curr_perp}")
-        print(f"Val Loss: {curr_avgvalloss}, Perplexity: {curr_valperp}\n")
+        if isPerp:
+            print(f"Train Loss: {curr_avgtrloss:.4e}, Perplexity: {curr_perp:.4e}")
+            print(f"Val Loss: {curr_avgvalloss:.4e}, Perplexity: {curr_valperp:.4e}\n")
+        else:
+            print(
+                f"Train Loss: {curr_avgtrloss:.4e}, Val Loss: {curr_avgvalloss:.4e}\n"
+            )
         if save_int > 0:
             with open(log_file, "a") as log:
                 log.write(f"Train Loss: {curr_avgtrloss}, Perplexity: {curr_perp}\n")
@@ -164,8 +170,17 @@ def train_model(
 
         if nimp_ctr >= patience:
             print(f"\nEARLY STOPPING at epoch {epoch}, best epoch {best_epoch}")
-            print(f"Train Loss = {best_avgtrloss}, Perplexity = {best_perp}")
-            print(f"Val Loss = {best_avgvalloss}, Perplexity = {best_valperp}")
+            if isPerp:
+                print(
+                    f"Train Loss = {best_avgtrloss:.4e}, Perplexity = {best_perp:.4e}"
+                )
+                print(
+                    f"Val Loss = {best_avgvalloss:.4e}, Perplexity = {best_valperp:.4e}"
+                )
+            else:
+                print(
+                    f"Train Loss = {best_avgtrloss:.4e}, Val Loss = {best_avgvalloss:.4e}"
+                )
             if save_int > 0:
                 with open(log_file, "a") as log:
                     log.write(
