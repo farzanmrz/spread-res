@@ -7,8 +7,8 @@ from transformers import BertConfig, BertModel
 from transformers.models.bert.modeling_bert import BertEncoder
 
 
-# Define the BertPos class
-class BertPos(nn.Module):
+# Define the BertGrid class
+class BertGrid(nn.Module):
     """A BERT-based model that combines positional and content understanding for grid-structured data.
 
     This model processes grid-structured input through BERT embeddings enriched with positional

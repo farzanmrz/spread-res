@@ -6,7 +6,7 @@ Final configuration:
   "THREADS": 10,
   "seed": 0,
   "model_base": "bert-base-cased",
-  "model_name": "BertPos",
+  "model_name": "BertGrid",
   "rows": 100,
   "cols": 100,
   "tokens": 32,
@@ -36,7 +36,7 @@ Final configuration:
   "patience": 2,
   "save_int": 10,
   "save_dir": "../models/",
-  "save_name": "ber0c_bbcBertPos_manual10010032_ba40lr1e-2ep20pa2_v30kh32l1i128a1"
+  "save_name": "ber0cBertGrid_manualba40lr1e-2ep20pa2_v30Kh32l1i128a1"
 }
 
 ================================================================================
@@ -48,7 +48,7 @@ Val Loss: 1.1921906471252441, Perplexity: 1.0000029804810595
 
 Epoch 1
 Train Loss: 1.2125389575958252, Perplexity: 1.0000030313519885
-Val Loss: 1.2104672193527222, Perplexity: 1.0000030261726272
+Val Loss: 1.2104673385620117, Perplexity: 1.0000030261729254
 
 Epoch 2
 Train Loss: 1.249038577079773, Perplexity: 1.000003122601318
@@ -68,18 +68,18 @@ Val Loss: 0.5747075080871582, Perplexity: 1.0000014367698025
 
 Epoch 6
 Train Loss: 0.6321220993995667, Perplexity: 1.0000015803064972
-Val Loss: 0.45656272768974304, Perplexity: 1.0000011414074705
+Val Loss: 0.4565626382827759, Perplexity: 1.0000011414072472
 
 Epoch 7
 Train Loss: 0.501716136932373, Perplexity: 1.000001254291129
-Val Loss: 0.31587234139442444, Perplexity: 1.0000007896811653
+Val Loss: 0.31587231159210205, Perplexity: 1.0000007896810907
 
 Epoch 8
 Train Loss: 0.36777937412261963, Perplexity: 1.000000919448858
-Val Loss: 0.2601486146450043, Perplexity: 1.000000650371748
+Val Loss: 0.2601485848426819, Perplexity: 1.0000006503716736
 
 Epoch 9
-Train Loss: 0.3012649416923523, Perplexity: 1.0000007531626378
+Train Loss: 0.3012648820877075, Perplexity: 1.0000007531624888
 Val Loss: 0.2060873806476593, Perplexity: 1.0000005152185842
 Model Saved
 
@@ -88,33 +88,33 @@ Train Loss: 0.2506842017173767, Perplexity: 1.0000006267107007
 Val Loss: 0.18331852555274963, Perplexity: 1.0000004582964188
 
 Epoch 11
-Train Loss: 0.22020746767520905, Perplexity: 1.0000005505188208
+Train Loss: 0.22020745277404785, Perplexity: 1.0000005505187834
 Val Loss: 0.15869221091270447, Perplexity: 1.000000396730606
 
 Epoch 12
 Train Loss: 0.1970372349023819, Perplexity: 1.0000004925932087
-Val Loss: 0.14527948200702667, Perplexity: 1.000000363198771
+Val Loss: 0.14527946710586548, Perplexity: 1.0000003631987338
 
 Epoch 13
 Train Loss: 0.1795661300420761, Perplexity: 1.000000448915426
-Val Loss: 0.1739361733198166, Perplexity: 1.0000004348405278
+Val Loss: 0.1739359349012375, Perplexity: 1.0000004348399318
 
 Epoch 14
 Train Loss: 0.16059474647045135, Perplexity: 1.0000004014869468
-Val Loss: 0.12462285161018372, Perplexity: 1.0000003115571776
+Val Loss: 0.12462274730205536, Perplexity: 1.0000003115569167
 
 Epoch 15
 Train Loss: 0.14448846876621246, Perplexity: 1.0000003612212371
-Val Loss: 0.13444651663303375, Perplexity: 1.000000336116348
+Val Loss: 0.1344461739063263, Perplexity: 1.0000003361154912
 
 Epoch 16
-Train Loss: 0.13296684622764587, Perplexity: 1.000000332417171
-Val Loss: 0.1390783041715622, Perplexity: 1.0000003476958208
+Train Loss: 0.13296683132648468, Perplexity: 1.0000003324171336
+Val Loss: 0.13907796144485474, Perplexity: 1.0000003476949642
 
 EARLY STOPPING at epoch 16, best epoch 14
 Train Loss = 0.16059474647045135, Perplexity = 1.0000004014869468
-Val Loss = 0.12462285161018372, Perplexity = 1.0000003115571776
+Val Loss = 0.12462274730205536, Perplexity = 1.0000003115569167
 
 TRAINING DONE at epoch 16, best epoch 14
 Train Loss = 0.16059474647045135, Perplexity = 1.0000004014869468
-Val Loss = 0.12462285161018372, Perplexity = 1.0000003115571776
+Val Loss = 0.12462274730205536, Perplexity = 1.0000003115569167

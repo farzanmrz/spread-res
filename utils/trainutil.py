@@ -18,14 +18,15 @@ def train_model(
     val_data,
     DEVICE,
     batch_size=8,
-    lr=1.4e-5,
+    lr=1e-2,
     mu=0.25,
-    max_epochs=4,
-    patience=3,
+    max_epochs=3,
+    patience=2,
     save_int=2,
     save_dir="../models/",
     save_name="model_",
     config=None,
+    isPerp=False,
 ):
     """
     Unified training function that handles both BERT and non-BERT models.
@@ -144,8 +145,13 @@ def train_model(
         )
 
         # Print and log metrics
-        print(f"Train Loss: {curr_avgtrloss}, Perplexity: {curr_perp}")
-        print(f"Val Loss: {curr_avgvalloss}, Perplexity: {curr_valperp}\n")
+        if isPerp:
+            print(f"Train Loss: {curr_avgtrloss:.4e}, Perplexity: {curr_perp:.4e}")
+            print(f"Val Loss: {curr_avgvalloss:.4e}, Perplexity: {curr_valperp:.4e}\n")
+        else:
+            print(
+                f"Train Loss: {curr_avgtrloss:.4e}, Val Loss: {curr_avgvalloss:.4e}\n"
+            )
         if save_int > 0:
             with open(log_file, "a") as log:
                 log.write(f"Train Loss: {curr_avgtrloss}, Perplexity: {curr_perp}\n")
@@ -164,8 +170,17 @@ def train_model(
 
         if nimp_ctr >= patience:
             print(f"\nEARLY STOPPING at epoch {epoch}, best epoch {best_epoch}")
-            print(f"Train Loss = {best_avgtrloss}, Perplexity = {best_perp}")
-            print(f"Val Loss = {best_avgvalloss}, Perplexity = {best_valperp}")
+            if isPerp:
+                print(
+                    f"Train Loss = {best_avgtrloss:.4e}, Perplexity = {best_perp:.4e}"
+                )
+                print(
+                    f"Val Loss = {best_avgvalloss:.4e}, Perplexity = {best_valperp:.4e}"
+                )
+            else:
+                print(
+                    f"Train Loss = {best_avgtrloss:.4e}, Val Loss = {best_avgvalloss:.4e}"
+                )
             if save_int > 0:
                 with open(log_file, "a") as log:
                     log.write(
