@@ -44,66 +44,91 @@ def h_env(input_config):
 
 def h_device(input_config, config):
     """Helper function to validate and setup device configuration."""
-    # Extract device configuration string
-    device_config = input_config["device"]
 
-    # Validate device string contains index specification
-    if ":" not in device_config:
-        raise ValueError("ERR: Specify device index (e.g., cuda:0, mps:0)")
+    # Check if device is provided in input_config
+    if "device" not in input_config:
 
-    # Check for CUDA device in non-local environments
-    if (
-        config["env"] != "local"
-        and device_config.startswith("cuda")
-        and torch.cuda.is_available()
-        and int(device_config.split(":")[1]) < torch.cuda.device_count()
-    ):
-        # Set device to specified CUDA device
-        config["DEVICE"] = torch.device(device_config)
+        # Local = MPS
+        if (
+            config["env"] == "local"
+            and hasattr(torch.backends, "mps")
+            and torch.backends.mps.is_available()
+        ):
+            config["DEVICE"] = torch.device("mps:0")
 
-    # Check for MPS device in local environment
-    elif (
-        config["env"] == "local"
-        and device_config.startswith("mps")
-        and device_config.split(":")[1] == "0"
-        and hasattr(torch.backends, "mps")
-        and torch.backends.mps.is_available()
-    ):
-        # Set device to MPS
-        config["DEVICE"] = torch.device(device_config)
+        # Colab/GCP/BVM = CUDA if available
+        elif config["env"] in ["colab", "gcp", "bvm"] and torch.cuda.is_available():
+            config["DEVICE"] = torch.device("cuda:0")
 
-    # Default to CPU if neither CUDA nor MPS is available
+        # Default to CPU
+        else:
+            print("\nGPU not available, defaulting to CPU\n")
+            config["DEVICE"] = torch.device("cpu")
+
+    # Else if device provided
     else:
-        print("\nGPU DNE defaulting to CPU\n")
-        config["DEVICE"] = torch.device("cpu")
+        # Original device validation logic for when device is specified
+        device_config = input_config["device"]
 
-    # Return updated configuration
+        # Validate device string contains index specification
+        if ":" not in device_config:
+            raise ValueError("ERR: Specify device index (e.g., cuda:0, mps:0)")
+
+        # Check for CUDA device in non-local environments
+        if (
+            config["env"] != "local"
+            and device_config.startswith("cuda")
+            and torch.cuda.is_available()
+            and int(device_config.split(":")[1]) < torch.cuda.device_count()
+        ):
+            config["DEVICE"] = torch.device(device_config)
+        # Check for MPS device in local environment
+        elif (
+            config["env"] == "local"
+            and device_config.startswith("mps")
+            and device_config.split(":")[1] == "0"
+            and hasattr(torch.backends, "mps")
+            and torch.backends.mps.is_available()
+        ):
+            config["DEVICE"] = torch.device(device_config)
+        else:
+            print("\nSpecified GPU not available, defaulting to CPU\n")
+            config["DEVICE"] = torch.device("cpu")
+
     return config
 
 
 def h_threads(input_config, config):
     """Helper function to validate and setup thread configuration."""
-    # Validate threads parameter is numeric
-    if not isinstance(input_config["threads"], (int, float)):
-        raise ValueError("ERR: threads must be a number")
 
-    # Convert threads to integer
-    threads = int(input_config["threads"])
+    # If threads param given then
+    if "threads" in input_config:
 
-    # Check BVM-specific thread limit
-    if config["env"] == "bvm" and threads > 20:
-        raise ValueError("ERR: BVM environment cannot request more than 20 threads")
+        # Validate threads parameter is numeric
+        if not isinstance(input_config["threads"], (int, float)):
+            raise ValueError("ERR: threads must be a number")
 
-    # Ensure minimum threads are left free
-    if (os.cpu_count() - threads) < 2:
-        raise ValueError(
-            f"ERR: Must leave at least 2 threads free (requested {threads})"
+        # If bvm no more than 20 allowed
+        if config["env"] == "bvm" and int(input_config["threads"]) > 20:
+            raise ValueError("ERR: BVM environment cannot request more than 20 threads")
+
+        # Always leave 2 threads at end for other worker stuff
+        if os.cpu_count() - int(input_config["threads"]) < 2:
+            raise ValueError(
+                f"ERR: Must leave at least 2 threads free (requested {input_config['threads']})"
+            )
+
+        # Set threads in config dict finally as int and max between 1
+        config["THREADS"] = max(1, int(input_config["threads"]))
+
+    # ELse if threads param dont exist then set threads based on env
+    else:
+        config["THREADS"] = (
+            16
+            if config["env"] == "bvm" and os.cpu_count() >= 18
+            else max(1, os.cpu_count() - 2)
         )
 
-    # Set thread count in config with minimum of 1
-    config["THREADS"] = max(1, threads)
-
-    # Return updated configuration
     return config
 
 
@@ -112,8 +137,8 @@ def h_seed(input_config, config):
     # Set torch printing options
     torch.set_printoptions(precision=4, sci_mode=False)
 
-    # Set seed value in config
-    config["seed"] = input_config["seed"]
+    # Set seed value in config default unless other provided
+    config["seed"] = input_config.get("seed", 0)
 
     # Apply seed setting
     set_seed(config["seed"])
@@ -143,11 +168,13 @@ def h_model(config, input_config):
     config["model_name"] = input_config["model_name"]
 
     ######## CONTEXT PARAMS ########
+
+    # Updte context with default values unless other provided
     config.update(
         {
-            "rows": input_config["rows"],
-            "cols": input_config["cols"],
-            "tokens": input_config["tokens"],
+            "rows": input_config.get("rows", 100),
+            "cols": input_config.get("cols", 100),
+            "tokens": input_config.get("tokens", 32),
         }
     )
 
@@ -156,15 +183,15 @@ def h_model(config, input_config):
 
 def h_data(config, input_config):
     """Helper function to setup data-related configurations."""
-    ######## DATA DIR & DATASET ########
-    if not os.path.isdir(input_config["data_dir"]):
-        raise ValueError(
-            f"ERR: data_dir '{input_config['data_dir']}' is not a valid path"
-        )
 
-    config.update(
-        {"data_ds": input_config["data_ds"], "data_dir": input_config["data_dir"]}
-    )
+    ######## DATA DIR & DATASET ########
+    # Set default data directory if not provided
+    data_dir = input_config.get("data_dir", "../data")
+
+    # Validate data directory and update config
+    if not os.path.isdir(data_dir):
+        raise ValueError(f"ERR: data_dir '{data_dir}' is not a valid path")
+    config.update({"data_ds": input_config["data_ds"], "data_dir": data_dir})
 
     ######## DATA DIRECTORIES ########
     # Create directory paths
@@ -259,85 +286,59 @@ def h_name(config):
 
     ### BASE FORMAT SAME FOR ALL APPROACHES ###
 
-    # 1a. Approach: Short 3 low chars
-    approach_str = config["approach"].lower()[:3]
+    # 1. First string: approach + seed + env + model_name
+    first_str = (
+        config["approach"].lower()[:3]
+        + str(config["seed"])
+        + config["env"].lower()[:1]
+        + config["model_name"]
+        + "_"
+    )
 
-    # 1b. Seed: Convert to string
-    seed_str = str(config["seed"])
+    # 2. Second string: dataset + training params
+    second_str = (
+        config["data_ds"]
+        + "ba"
+        + str(config["batch_size"])
+        + "lr"
+        + f"{config['lr']:.0e}".replace("e-0", "e-")
+        + "ep"
+        + str(config["epochs"])
+        + "pa"
+        + str(config["patience"])
+        + "_"
+    )
 
-    # 1c. Environment: Short 1 low char
-    env_str = config["env"].lower()[:1]
+    # 3. Architecture specific strings always include vocab size
+    third_str = "v" + str(config["vocab_size"] // 1000) + "K"
 
-    # 1. First string
-    first_str = approach_str + seed_str + env_str + "_"
+    # If bert or rnn
+    if config["approach"] in ["rnn", "bert"]:
+        third_str += f"h{config['hidden_size']}l{config['num_hidden_layers']}"
 
-    # 2a. Model Base: Mapped Short error checked
-    modelbase_map = {"glove50": "g50", "bert-base-cased": "bbc"}
-    if config["model_base"] in modelbase_map:
-        modelbase_str = modelbase_map[config["model_base"]]
-    else:
-        raise ValueError(
-            f"ERR: Model base '{config['model_base']}' not found in mappings"
-        )
+        # If bert
+        if config["approach"] == "bert":
+            third_str += (
+                f"i{config['intermediate_size']}a{config['num_attention_heads']}"
+            )
 
-    # 2b. Model Name: Name of our defined class for model architecure
-    modelname_str = config["model_name"]
+    # If saffu
+    elif config["approach"] == "saffu":
+        third_str += "saffu"
 
-    # 2. Second string
-    second_str = modelbase_str + modelname_str + "_"
-
-    # 3a. Data Set: low str
-    ds_str = config["data_ds"]
-
-    # 3b. Context: Rows+Cols+Tokens to str
-    context_str = str(config["rows"]) + str(config["cols"]) + str(config["tokens"])
-
-    # 3. Third string
-    third_str = ds_str + context_str + "_"
-
-    # 4a. Batch: ba followed by batch size
-    batch_str = "ba" + str(config["batch_size"])
-
-    # 4b. Learning Rate: lr followed by learning rate in scientific notation
-    lr_str = "lr" + f"{config['lr']:.0e}".replace("e-0", "e-")
-
-    # 4c. Epochs: ep followed by number of epochs
-    epochs_str = "ep" + str(config["epochs"])
-
-    # 4d. Patience: pa followed by patience value
-    patience_str = "pa" + str(config["patience"])
-
-    # 4. Fourth string
-    fourth_str = batch_str + lr_str + epochs_str + patience_str + "_"
-
-    # 5. Fifth string variable for approach, starting with vocab size
-    fifth_str = "v" + str(config["vocab_size"] // 1000) + "K"
-
-    # Construct base string based on these
-    base_str = first_str + second_str + third_str + fourth_str + fifth_str
-
-    # Define architecture specific strings for rnn/bert
-    rnn_str = f"h{config['hidden_size']}l{config['num_hidden_layers']}"
-    bert_str = f"i{config['intermediate_size']}a{config['num_attention_heads']}"
-
-    # Map each approach to its corresponding augmented base string.
-    approaches = {
-        "simple": base_str,
-        "rnn": base_str + rnn_str,
-        "bert": base_str + rnn_str + bert_str,
-        "saffu": base_str + "saffu_component",
-    }
-
-    # Set save_name based on the configuration's approach.
-    save_name = approaches[config["approach"]]
-
-    # Return final save name
-    return save_name
+    # Combine all parts and return
+    return first_str + second_str + third_str
 
 
 def h_training(config, input_config):
     """Helper function to setup training parameters and call h_name for save name generation."""
     ######## TRAINING PARAMS ########
+    # Define default save dir if exists else provided one check
+    save_dir = input_config.get("save_dir", "../models/")
+    if not os.path.isdir(save_dir):
+        raise ValueError(f"ERR: save_dir '{save_dir}' is not a valid path")
+
+    # Update config
     config.update(
         {
             "batch_size": input_config["batch_size"],
@@ -346,7 +347,7 @@ def h_training(config, input_config):
             "epochs": input_config["epochs"],
             "patience": input_config["patience"],
             "save_int": input_config["save_int"],
-            "save_dir": input_config["save_dir"],
+            "save_dir": save_dir,
         }
     )
 
@@ -527,4 +528,4 @@ def display_config(config):
     print(json.dumps(serializable_config, indent=2))
 
     # Print base info needed
-    print(f'\nDEVICE: {config["DEVICE"]}\t| THREADS: {config["THREADS"]}')
+    print(f'\nDEVICE: {config["DEVICE"]} | THREADS: {config["THREADS"]}')
