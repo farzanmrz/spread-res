@@ -1,11 +1,11 @@
 # Import required libraries
-from transformers import BertModel, BertConfig
-import torch.nn as nn
 import torch
+import torch.nn as nn
+from transformers import BertConfig, BertModel
 
 
-# Define the BertPooler class
-class BertPooler(nn.Module):
+# Define the BertSimple class
+class BertSimple(nn.Module):
     """A BERT-based model for processing grid-structured input data.
 
     This model uses BERT to process text in a grid format, applying the model to each cell
@@ -32,7 +32,7 @@ class BertPooler(nn.Module):
     """
 
     def __init__(self, config):
-        """Initialize the BertPooler model.
+        """Initialize the BertSimple model.
 
         Args:
             config (dict): Configuration dictionary with model parameters.
