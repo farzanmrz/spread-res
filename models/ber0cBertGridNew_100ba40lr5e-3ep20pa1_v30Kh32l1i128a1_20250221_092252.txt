@@ -1,0 +1,81 @@
+
+Final configuration:
+{
+  "env": "colab",
+  "approach": "bert",
+  "THREADS": 10,
+  "seed": 0,
+  "model_base": "bert-base-cased",
+  "model_name": "BertGridNew",
+  "rows": 100,
+  "cols": 100,
+  "tokens": 32,
+  "data_ds": "100",
+  "data_dir": "../data",
+  "train_dir": "../data/100_train",
+  "val_dir": "../data/100_val",
+  "test_dir": "../data/100_test",
+  "vocab_size": 30522,
+  "hidden_size": 32,
+  "num_hidden_layers": 1,
+  "num_attention_heads": 1,
+  "intermediate_size": 128,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "attention_probs_dropout_prob": 0.1,
+  "max_position_embeddings": 64,
+  "type_vocab_size": 2,
+  "initializer_range": 0.02,
+  "layer_norm_eps": 1e-12,
+  "pad_token_id": 0,
+  "gradient_checkpointing": false,
+  "batch_size": 40,
+  "lr": 0.005,
+  "mu": 0.25,
+  "epochs": 20,
+  "patience": 1,
+  "save_int": 10,
+  "save_dir": "../models/",
+  "save_name": "ber0cBertGridNew_100ba40lr5e-3ep20pa1_v30Kh32l1i128a1"
+}
+
+================================================================================
+
+
+Epoch 0
+Train Loss: 1.3270319104194641, Perplexity: 1.0000033175852792
+Val Loss: 1.0766514539718628, Perplexity: 1.0000026916322573
+
+Epoch 1
+Train Loss: 1.1140922904014587, Perplexity: 1.0000027852346047
+Val Loss: 0.9088396430015564, Perplexity: 1.0000022721016888
+
+Epoch 2
+Train Loss: 0.9903048872947693, Perplexity: 1.000002475765283
+Val Loss: 0.8168432712554932, Perplexity: 1.0000020421102633
+
+Epoch 3
+Train Loss: 0.8718748986721039, Perplexity: 1.0000021796896221
+Val Loss: 0.6456791758537292, Perplexity: 1.0000016141992425
+
+Epoch 4
+Train Loss: 0.7052960395812988, Perplexity: 1.0000017632416534
+Val Loss: 0.4981395900249481, Perplexity: 1.0000012453497504
+
+Epoch 5
+Train Loss: 0.5595113635063171, Perplexity: 1.000001398779387
+Val Loss: 0.39948445558547974, Perplexity: 1.0000009987116376
+
+Epoch 6
+Train Loss: 0.4672856777906418, Perplexity: 1.0000011682148768
+Val Loss: 0.34757617115974426, Perplexity: 1.0000008689408055
+
+Epoch 7
+Train Loss: 0.4100813716650009, Perplexity: 1.0000010252039546
+Val Loss: 0.34582266211509705, Perplexity: 1.000000864557029
+
+Epoch 8
+Train Loss: 0.36598925292491913, Perplexity: 1.000000914973551
+Val Loss: 0.28829264640808105, Perplexity: 1.0000007207318757
+
+Epoch 9
