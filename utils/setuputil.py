@@ -288,11 +288,7 @@ def h_name(config):
 
     # 1. First string: approach + seed + env + model_name
     first_str = (
-        config["approach"].lower()[:3]
-        + str(config["seed"])
-        + config["env"].lower()[:1]
-        + config["model_name"]
-        + "_"
+        config["env"].lower()[:1] + config["model_name"] + "_" + config["data_ds"]
     )
 
     # 2. Second string: dataset + training params
@@ -326,8 +322,11 @@ def h_name(config):
     elif config["approach"] == "saffu":
         third_str += "saffu"
 
-    # Combine all parts and return
-    return first_str + second_str + third_str
+    # # Combine all parts and return
+    # return first_str + second_str + third_str
+
+    # Simplified name to only return first part only required stuff
+    return first_str
 
 
 def h_training(config, input_config):
