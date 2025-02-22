@@ -23,7 +23,7 @@ class BertGrid(nn.Module):
         super().__init__()
 
         # Disable efficient sdp globally
-        torch.backends.cuda.enable_mem_efficient_sdp(False)
+        # torch.backends.cuda.enable_mem_efficient_sdp(False)
 
         # Extract common params
         self.device = config["DEVICE"]
