@@ -135,6 +135,7 @@ def h_device(input_config, config):
                 and int(device_config.split(":")[1]) < torch.cuda.device_count()
             ):
                 config["DEVICE"] = torch.device(device_config)
+
             # Check for MPS device in local environment
             elif (
                 config["env"] == "local"
@@ -156,78 +157,6 @@ def h_device(input_config, config):
         config["DEVICE"] = torch.device("cpu")
 
     return config
-
-
-# def h_device(input_config, config):
-#     """Helper function to validate and setup device configuration."""
-
-#     # Check if device is provided in input_config
-#     if "DEVICE" not in input_config:
-
-#         # Local = MPS
-#         if (
-#             config["env"] == "local"
-#             and hasattr(torch.backends, "mps")
-#             and torch.backends.mps.is_available()
-#         ):
-#             config["DEVICE"] = torch.device("mps:0")
-
-#         # Colab/GCP/BVM = CUDA if available
-#         elif config["env"] in ["colab", "gcp", "bvm"] and torch.cuda.is_available():
-#             config["DEVICE"] = torch.device("cuda:0")
-
-#         # Default to CPU
-#         else:
-#             print("\nGPU not available, defaulting to CPU\n")
-#             config["DEVICE"] = torch.device("cpu")
-
-#     # Else if device is explicitly provided
-#     else:
-#         device_config = input_config["DEVICE"]
-
-#         # Special case: 'cpu' should be allowed without an index
-#         if device_config == "cpu":
-#             config["DEVICE"] = torch.device("cpu")
-#             return config
-
-#         # Validate format for 'cuda' or 'mps' devices
-#         if device_config.startswith(("cuda", "mps")):
-#             parts = device_config.split(":")
-
-#             # Ensure correct structure: `device_name:index`
-#             if len(parts) != 2 or not parts[1].isdigit():
-#                 raise ValueError(
-#                     "Invalid device format. Use 'cuda:<int>' or 'mps:<int>', e.g., 'cuda:0' or 'mps:0'."
-#                 )
-
-#             # Convert index to integer
-#             device_index = int(parts[1])
-
-#             # CUDA validation (ensure the index is within available GPUs)
-#             if device_config.startswith("cuda") and (
-#                 not torch.cuda.is_available()
-#                 or device_index >= torch.cuda.device_count()
-#             ):
-#                 raise ValueError(f"CUDA device 'cuda:{device_index}' not available.")
-
-#             # MPS validation (only 'mps:0' is allowed)
-#             if device_config.startswith("mps") and (
-#                 device_index != 0
-#                 or not hasattr(torch.backends, "mps")
-#                 or not torch.backends.mps.is_available()
-#             ):
-#                 raise ValueError(
-#                     "MPS is only supported as 'mps:0' and must be available."
-#                 )
-
-#             # Assign valid device
-#             config["DEVICE"] = torch.device(device_config)
-#         else:
-#             raise ValueError(
-#                 "Invalid device type. Use 'cpu', 'cuda:<int>', or 'mps:<int>'."
-#             )
-
-#     return config
 
 
 def h_threads(input_config, config):
@@ -268,6 +197,9 @@ def h_seed(input_config, config):
     """Helper function to set seed configuration."""
     # Set torch printing options
     torch.set_printoptions(precision=4, sci_mode=False)
+
+    # Disable efficient sdp globally
+    torch.backends.cuda.enable_mem_efficient_sdp(False)
 
     # Set seed value in config default unless other provided
     config["seed"] = input_config.get("seed", 0)
