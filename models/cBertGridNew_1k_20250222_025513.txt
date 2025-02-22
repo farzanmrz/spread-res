@@ -1,0 +1,59 @@
+
+Final configuration:
+{
+  "env": "colab",
+  "approach": "bert",
+  "THREADS": 10,
+  "seed": 0,
+  "model_base": "bert-base-cased",
+  "model_name": "BertGridNew",
+  "rows": 100,
+  "cols": 100,
+  "tokens": 32,
+  "data_ds": "1k",
+  "data_dir": "../data",
+  "train_dir": "../data/1k_train",
+  "val_dir": "../data/1k_val",
+  "test_dir": "../data/1k_test",
+  "vocab_size": 30522,
+  "hidden_size": 32,
+  "num_hidden_layers": 1,
+  "num_attention_heads": 1,
+  "intermediate_size": 128,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "attention_probs_dropout_prob": 0.1,
+  "max_position_embeddings": 64,
+  "type_vocab_size": 2,
+  "initializer_range": 0.02,
+  "layer_norm_eps": 1e-12,
+  "pad_token_id": 0,
+  "gradient_checkpointing": false,
+  "batch_size": 12,
+  "lr": 0.005,
+  "mu": 0.25,
+  "epochs": 100,
+  "patience": 1,
+  "save_int": 20,
+  "save_dir": "../models/",
+  "save_name": "cBertGridNew_1k"
+}
+
+================================================================================
+
+
+Epoch 0
+Train Loss: 0.6609362839762845, Perplexity: 1.0000055078175345
+Val Loss: 0.4049428171581692, Perplexity: 1.00000337452917
+
+Epoch 1
+Train Loss: 0.454314742960147, Perplexity: 1.0000037859633581
+Val Loss: 0.4142894032928679, Perplexity: 1.0000034524176538
+
+EARLY STOPPING at epoch 1, best epoch 0
+Train Loss = 0.6609362839762845, Perplexity = 1.0000055078175345
+Val Loss = 0.4049428171581692, Perplexity = 1.00000337452917
+
+TRAINING DONE at epoch 1, best epoch 0
+Train Loss = 0.6609362839762845, Perplexity = 1.0000055078175345
+Val Loss = 0.4049428171581692, Perplexity = 1.00000337452917
