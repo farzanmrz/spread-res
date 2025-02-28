@@ -21,6 +21,56 @@ from classes.Loader import LoaderBert, LoaderSimple
 from utils.selfutil import create_embeddings, get_fileList, get_vocab, set_seed
 
 
+# Define a function to validate the input configuration dictionary
+def h_valInput(input_config):
+
+    # Build a list of keys from input_config that are not in the allowed keys set
+    invalid_keys = [
+        key
+        for key in input_config
+        if key
+        not in {
+            "env",
+            "approach",
+            "DEVICE",
+            "THREADS",
+            "seed",
+            "model_base",
+            "model_name",
+            "rows",
+            "cols",
+            "tokens",
+            "data_ds",
+            "data_dir",
+            "vocab_size",
+            "hidden_size",
+            "num_hidden_layers",
+            "num_attention_heads",
+            "intermediate_size",
+            "hidden_act",
+            "hidden_dropout_prob",
+            "attention_probs_dropout_prob",
+            "max_position_embeddings",
+            "type_vocab_size",
+            "initializer_range",
+            "layer_norm_eps",
+            "pad_token_id",
+            "gradient_checkpointing",
+            "batch_size",
+            "lr",
+            "mu",
+            "epochs",
+            "patience",
+            "save_int",
+            "save_dir",
+        }
+    ]
+
+    # If any invalid keys are found, raise a ValueError with the list of invalid keys
+    if invalid_keys:
+        raise KeyError(f"Invalid Input Keys {invalid_keys}")
+
+
 def h_env(input_config):
     """Helper function to validate environment and approach."""
 
@@ -45,55 +95,66 @@ def h_env(input_config):
 def h_device(input_config, config):
     """Helper function to validate and setup device configuration."""
 
-    # Check if device is provided in input_config
-    if "device" not in input_config:
+    # Try catch block to default to cpu for any error
+    try:
 
-        # Local = MPS
-        if (
-            config["env"] == "local"
-            and hasattr(torch.backends, "mps")
-            and torch.backends.mps.is_available()
-        ):
-            config["DEVICE"] = torch.device("mps:0")
+        # Check if device is provided in input_config
+        if "DEVICE" not in input_config:
 
-        # Colab/GCP/BVM = CUDA if available
-        elif config["env"] in ["colab", "gcp", "bvm"] and torch.cuda.is_available():
-            config["DEVICE"] = torch.device("cuda:0")
+            # Local = MPS
+            if (
+                config["env"] == "local"
+                and hasattr(torch.backends, "mps")
+                and torch.backends.mps.is_available()
+            ):
+                config["DEVICE"] = torch.device("mps:0")
 
-        # Default to CPU
+            # Colab/GCP/BVM = CUDA if available
+            elif config["env"] in ["colab", "gcp", "bvm"] and torch.cuda.is_available():
+                config["DEVICE"] = torch.device("cuda:0")
+
+            # Default to CPU
+            else:
+                print("\nGPU not available, defaulting to CPU\n")
+                config["DEVICE"] = torch.device("cpu")
+
+        # Else if device provided
         else:
-            print("\nGPU not available, defaulting to CPU\n")
-            config["DEVICE"] = torch.device("cpu")
+            #         # Original device validation logic for when device is specified
+            device_config = input_config["DEVICE"]
 
-    # Else if device provided
-    else:
-        # Original device validation logic for when device is specified
-        device_config = input_config["device"]
+            # # Validate device string contains index specification
+            # if ":" not in device_config:
+            #     raise ValueError("ERR: Specify device index (e.g., cuda:0, mps:0)")
 
-        # Validate device string contains index specification
-        if ":" not in device_config:
-            raise ValueError("ERR: Specify device index (e.g., cuda:0, mps:0)")
+            # Check for CUDA device in non-local environments
+            if (
+                config["env"] != "local"
+                and device_config.startswith("cuda")
+                and torch.cuda.is_available()
+                and int(device_config.split(":")[1]) < torch.cuda.device_count()
+            ):
+                config["DEVICE"] = torch.device(device_config)
 
-        # Check for CUDA device in non-local environments
-        if (
-            config["env"] != "local"
-            and device_config.startswith("cuda")
-            and torch.cuda.is_available()
-            and int(device_config.split(":")[1]) < torch.cuda.device_count()
-        ):
-            config["DEVICE"] = torch.device(device_config)
-        # Check for MPS device in local environment
-        elif (
-            config["env"] == "local"
-            and device_config.startswith("mps")
-            and device_config.split(":")[1] == "0"
-            and hasattr(torch.backends, "mps")
-            and torch.backends.mps.is_available()
-        ):
-            config["DEVICE"] = torch.device(device_config)
-        else:
-            print("\nSpecified GPU not available, defaulting to CPU\n")
-            config["DEVICE"] = torch.device("cpu")
+            # Check for MPS device in local environment
+            elif (
+                config["env"] == "local"
+                and device_config.startswith("mps")
+                and device_config.split(":")[1] == "0"
+                and hasattr(torch.backends, "mps")
+                and torch.backends.mps.is_available()
+            ):
+                config["DEVICE"] = torch.device(device_config)
+            else:
+                print(
+                    "\nSpecified GPU not available or CPU specified as DEVICE, therefore device is defaulting to CPU\n"
+                )
+                config["DEVICE"] = torch.device("cpu")
+
+    # If any error then default to CPU
+    except Exception as e:
+        print(f"ERR: {e} \nDefaulting to CPU")
+        config["DEVICE"] = torch.device("cpu")
 
     return config
 
@@ -136,6 +197,9 @@ def h_seed(input_config, config):
     """Helper function to set seed configuration."""
     # Set torch printing options
     torch.set_printoptions(precision=4, sci_mode=False)
+
+    # Disable efficient sdp globally
+    torch.backends.cuda.enable_mem_efficient_sdp(False)
 
     # Set seed value in config default unless other provided
     config["seed"] = input_config.get("seed", 0)
@@ -288,11 +352,7 @@ def h_name(config):
 
     # 1. First string: approach + seed + env + model_name
     first_str = (
-        config["approach"].lower()[:3]
-        + str(config["seed"])
-        + config["env"].lower()[:1]
-        + config["model_name"]
-        + "_"
+        config["env"].lower()[:1] + config["model_name"] + "_" + config["data_ds"]
     )
 
     # 2. Second string: dataset + training params
@@ -326,8 +386,11 @@ def h_name(config):
     elif config["approach"] == "saffu":
         third_str += "saffu"
 
-    # Combine all parts and return
-    return first_str + second_str + third_str
+    # # Combine all parts and return
+    # return first_str + second_str + third_str
+
+    # Simplified name to only return first part only required stuff
+    return first_str
 
 
 def h_training(config, input_config):
@@ -465,48 +528,49 @@ def h_setupbert(config, input_config):
 def setup_config(input_config):
     """Sets up the configuration for model training with modular helper functions."""
 
-    ######## ENVIRONMENT ########
+    # 1. Validate input configuration keys
+    h_valInput(input_config)
+
+    # 2. Set environment
     config = h_env(input_config)
 
-    ######## DEVICE ########
+    # 3. Setup device
     config = h_device(input_config, config)
 
-    ######## THREADS ########
+    # 4. Setup threads
     config = h_threads(input_config, config)
 
-    ######## SEED ########
+    # 5. Setup seed
     config = h_seed(input_config, config)
 
-    ######## MODEL ########
+    # 6. Setup model
     config = h_model(config, input_config)
 
-    ######## DATA ########
+    # 7. Setup data
     config = h_data(config, input_config)
 
-    ######## APPROACH-SPECIFIC SETUP ########
+    # 8. For simple/rnn model do the following
     if config["approach"] in ["simple", "rnn"]:
 
-        ######## VOCAB ########
+        # 8.1. Custom vocab object setup
         config = h_vocab(config, input_config)
 
-        ######## SIMPLE LOADERS ########
+        # 8.2. Custom dataset class made with vocab
         config = h_simpleloader(config)
 
-        ######## RNN PARAMS ########
+        # 8.3. Specifically RNN do further setup
         if config["approach"] == "rnn":
             config = h_rnn(config, input_config)
 
-    ######## BERT-SPECIFIC ########
+    # 9. For BERT model setup its specific configurations
     elif config["approach"] == "bert":
-
-        ######## SETUP ########
         config = h_setupbert(config, input_config)
 
-    ######## SAFFU-SPECIFIC ########
+    # 10. For SAFFU model setup its specific configurations
     elif config["approach"] == "saffu":
         pass
 
-    ######## TRAINING & SAVE NAME ########
+    # 11. Training parameters and save name
     config = h_training(config, input_config)
 
     return config

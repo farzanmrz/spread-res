@@ -1,0 +1,79 @@
+
+Final configuration:
+{
+  "env": "colab",
+  "approach": "bert",
+  "THREADS": 10,
+  "seed": 0,
+  "model_base": "prajjwal1/bert-tiny",
+  "model_name": "BertPreTiny",
+  "rows": 100,
+  "cols": 100,
+  "tokens": 32,
+  "data_ds": "1k",
+  "data_dir": "../data",
+  "train_dir": "../data/1k_train",
+  "val_dir": "../data/1k_val",
+  "test_dir": "../data/1k_test",
+  "vocab_size": 30522,
+  "hidden_size": 128,
+  "num_hidden_layers": 2,
+  "num_attention_heads": 2,
+  "intermediate_size": 512,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "attention_probs_dropout_prob": 0.1,
+  "max_position_embeddings": 64,
+  "type_vocab_size": 2,
+  "initializer_range": 0.02,
+  "layer_norm_eps": 1e-12,
+  "pad_token_id": 0,
+  "gradient_checkpointing": false,
+  "batch_size": 3,
+  "lr": 5e-05,
+  "mu": 0.25,
+  "epochs": 200,
+  "patience": 2,
+  "save_int": 50,
+  "save_dir": "../models/",
+  "save_name": "cBertPreTiny_1k"
+}
+
+================================================================================
+
+
+Epoch 0
+Train Loss: 1.1076266026675479, Perplexity: 1.00003692156834
+Val Loss: 0.6643609465921626, Perplexity: 1.0000221456100968
+
+Epoch 1
+Train Loss: 0.6988548935017782, Perplexity: 1.0000232954344512
+Val Loss: 0.4437088725321433, Perplexity: 1.000014790405128
+
+Epoch 2
+Train Loss: 0.5608601934007937, Perplexity: 1.000018695514539
+Val Loss: 0.3670569811673725, Perplexity: 1.0000122353075565
+
+Epoch 3
+Train Loss: 0.5054736403880941, Perplexity: 1.0000168492632935
+Val Loss: 0.3344666138291359, Perplexity: 1.0000111489492767
+
+Epoch 4
+Train Loss: 0.48081949199741697, Perplexity: 1.000016027444838
+Val Loss: 0.3278162547332399, Perplexity: 1.0000109272681932
+
+Epoch 5
+Train Loss: 0.5201908966686841, Perplexity: 1.000017339846889
+Val Loss: 0.3307665651116301, Perplexity: 1.000011025612952
+
+Epoch 6
+Train Loss: 0.5215970757190654, Perplexity: 1.000017386720338
+Val Loss: 0.3526845744208378, Perplexity: 1.0000117562215844
+
+EARLY STOPPING at epoch 6, best epoch 4
+Train Loss = 0.48081949199741697, Perplexity = 1.000016027444838
+Val Loss = 0.3278162547332399, Perplexity = 1.0000109272681932
+
+TRAINING DONE at epoch 6, best epoch 4
+Train Loss = 0.48081949199741697, Perplexity = 1.000016027444838
+Val Loss = 0.3278162547332399, Perplexity = 1.0000109272681932

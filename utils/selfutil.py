@@ -1,26 +1,29 @@
 # Import then Class Reset
 import importlib
+
 from classes import Vocab
 
 importlib.reload(Vocab)
-from classes.Vocab import Vocab
+import csv
+import gc
+import os
+import random
+import re
+import sys
+import warnings
+from collections import Counter
+
+import chardet
+import gensim.downloader as api
+import numpy as np
 
 # Other imports
 import pandas as pd
-import warnings
-import gensim.downloader as api
 import torch
-import re
-import random
-import numpy as np
-import gc
 from joblib import Parallel, delayed
-from collections import Counter
 from tqdm import tqdm
-import os
-import sys
-import csv
-import chardet
+
+from classes.Vocab import Vocab
 
 
 def set_seed(seed: int):
@@ -98,7 +101,6 @@ def to_gpu(x, device=2, seed=0):
 
 
 def get_fileList(directory):
-
     """
     Retrieves and classifies files in a directory into valid and invalid files based on extensions.
 
@@ -136,6 +138,7 @@ def get_fileList(directory):
 
     # Return both lists
     return valid_files, invalid_files
+
 
 def tokenize(text, space=True, case="lower"):
 
@@ -231,7 +234,6 @@ def get_vocab(
     init_total_files = len(file_paths) + len(invalid_files)
     ec = len(invalid_files)
     vocab = Vocab(target=False, space=space, case=case)
-
 
     # Helper function for token aggregation from a single file
     def process_file(file_path):
@@ -351,7 +353,6 @@ def spreadsheet_to_df(file_path, max_rows=100, max_cols=100):
     except Exception as parse_error:
         raise parse_error
 
-
     # Fill NaN values with empty strings and convert to string type
     df = df.fillna("").astype(str)
 
@@ -435,3 +436,92 @@ def create_embeddings(vocab, model_name="glove-wiki-gigaword-50"):
     print(f"Word Embeddings Shape: {word_vectors.shape}")
 
     return word_vectors
+
+
+def oneBatch_check(batch_size, data_loader, device):
+    """
+    Setup single batch testing by fetching a batch from the given data loader.
+
+    Args:
+        batch_size (int): Number of samples per batch.
+        data_loader (torch.utils.data.DataLoader): The dataset loader.
+        device (str): The device to move tensors to (e.g., 'cpu' or 'mps').
+
+    Returns:
+        tuple: (ex_file, ex_xtok, ex_xmasks, ex_ytok)
+    """
+    check_loader = torch.utils.data.DataLoader(
+        data_loader, batch_size=batch_size, shuffle=False
+    )
+    check_batch = next(iter(check_loader))
+
+    # Extract tensors and file paths
+    ex_file = check_batch["file_paths"]
+    ex_xtok = check_batch["x_tok"].to(device)
+    ex_xmasks = check_batch["x_masks"].to(device)
+    ex_ytok = check_batch["y_tok"]
+
+    # Print filenames and shapes
+    print(f"Filenames:\t{ex_file}")
+    print(f"Tok Tensor Shapes:\t{ex_xtok.shape},\t{ex_ytok.shape}\n")
+    return ex_file, ex_xtok, ex_xmasks, ex_ytok
+
+
+def compare_sCube(S_cube1, S_cube2, filenames, tolerance=1e-5):
+    """
+    Compare two S_cube tensors (batch_size x rows x cols) and print the differences.
+
+    Args:
+        S_cube1 (torch.Tensor): First tensor of shape (batch_size, rows, cols).
+        S_cube2 (torch.Tensor): Second tensor of shape (batch_size, rows, cols).
+        filenames (list): List of file names corresponding to batch indices.
+        tolerance (float): Absolute tolerance for considering values as "close".
+    """
+    assert S_cube1.shape == S_cube2.shape, "Tensors must have the same shape"
+
+    # Compute absolute difference
+    diff = torch.abs(S_cube1 - S_cube2)
+
+    # Compute metrics
+    mean_diff = torch.mean(diff).item()
+    max_diff = torch.max(diff).item()
+    min_diff = torch.min(diff).item()
+    std_diff = torch.std(diff).item()
+    num_nonzero = torch.count_nonzero(diff).item()
+
+    # Check element-wise closeness
+    close = torch.allclose(S_cube1, S_cube2, atol=tolerance)
+
+    # If tensors are identical, return early
+    if close:
+        print(f"\nTENSORS are IDENTICAL within TOLERANCE level {tolerance}")
+        return
+
+    ## Print general metrics neatly
+    print(f"\nS_cube Shape:\t{S_cube1.shape}")
+    print(f"Num Diff Positions:\t{num_nonzero}")
+    print(f"Abs Diff Avg:\t{mean_diff:.20f}")
+    print(f"Abs Diff Max:\t{max_diff:.20f}")
+    print(f"Abs Diff Min:\t{min_diff:.20f}")
+    print(f"Stdev:\t{std_diff:.20f}")
+    print(f"Similar at Tolerance = {tolerance}: {close}\n")
+
+    # Find the first differing index
+    indices = torch.where(diff > tolerance)
+    batch_idx, row_idx, col_idx = (
+        indices[0][0].item(),
+        indices[1][0].item(),
+        indices[2][0].item(),
+    )
+
+    # Extract corresponding file name
+    file_name = filenames[batch_idx]
+
+    # Print first discrepancy details
+    print(f"Position [Batch, Row, Col]:\t[{batch_idx}, {row_idx}, {col_idx}]")
+    print(f"File:\t{file_name}")
+    print(
+        f"S_cube1:\t{S_cube1[batch_idx, row_idx, col_idx].item():.20f}"
+        f"\nS_cube2:\t{S_cube2[batch_idx, row_idx, col_idx].item():.20f}"
+        f"\nDiff:\t{diff[batch_idx, row_idx, col_idx].item():.20f}\n"
+    )

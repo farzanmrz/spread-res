@@ -22,6 +22,9 @@ class BertGrid(nn.Module):
     def __init__(self, config):
         super().__init__()
 
+        # Disable efficient sdp globally
+        # torch.backends.cuda.enable_mem_efficient_sdp(False)
+
         # Extract common params
         self.device = config["DEVICE"]
         self.rows = config["rows"]
@@ -53,8 +56,8 @@ class BertGrid(nn.Module):
         self.bertModel_cell = BertModel(self.bert_config)
         self.bertEncoder_spatial = BertEncoder(self.bert_config)
 
-        # Precompute pos encs for grid cells [max(rows, cols), hidden_size]
-        self.pos_encodings = self.get_posEncoding()
+        # Precompute both versions of positional encodings
+        self.pos_encodings = self.get_posEncoding(self.rows, self.cols)
 
         # Final binary classification layers wrapped sequentially
         self.binary_classifier = nn.Sequential(
@@ -64,28 +67,23 @@ class BertGrid(nn.Module):
         )
 
     # Function to get positional encodings for cells
-    def get_posEncoding(self):
+    def get_posEncoding(self, num_rows=100, num_cols=100):
         """Generates positional encodings for grid cells using sinusoidal functions.
 
-        Creates a matrix of positional encodings where each row corresponds to a position in the grid (either row or column position). Uses sine and cosine functions of different frequencies to create unique position embeddings.
+        Args:
+            num_rows (int, optional): Number of rows. Defaults to 100
+            num_cols (int, optional): Number of columns. Defaults to 100
 
         Returns:
-            torch.Tensor: A tensor of shape [max_dim, hidden_size] containing positional
-                encodings, where max_dim is the maximum between number of rows and columns.
-                The encodings can be used for both row and column position encoding.
+            torch.Tensor: Tensor of shape [1, rows*cols, hidden_size] containing combined
+                        positional encodings for each grid position
         """
-
-        # Max of rows/cols is the number of positions we have
-        max_dim = max(self.rows, self.cols)
-
         # Initialize the positional encoding matrix [max_dim, hidden_size]
+        max_dim = max(num_rows, num_cols)
         posEncoding = torch.zeros(max_dim, self.hidden_size, device=self.device)
 
-        # Create [max_dim, 1] position vector
+        # Create position vector and frequency terms
         pos = torch.arange(max_dim, dtype=torch.float, device=self.device).unsqueeze(1)
-
-        # Compute a [hidden_size/2] vector for the exponential scaling
-        # This replaces repeated pow(10000, 2i/hidden_size) calls
         div_term = torch.exp(
             torch.arange(0, self.hidden_size, 2, dtype=torch.float, device=self.device)
             * (-math.log(10000.0) / self.hidden_size)
@@ -95,57 +93,34 @@ class BertGrid(nn.Module):
         posEncoding[:, 0::2] = torch.sin(pos * div_term)
         posEncoding[:, 1::2] = torch.cos(pos * div_term)
 
-        # Return final matrix of all positional encodings
-        return posEncoding
+        # Get indices for all grid positions
+        positions = torch.arange(num_rows * num_cols, device=self.device)
+        row_indices = positions // num_cols
+        col_indices = positions % num_cols
 
-    # Normal optimized forward function
+        # Return combined row and column encodings [1, rows*cols, hidden_size]
+        return (posEncoding[row_indices] + posEncoding[col_indices]).unsqueeze(0)
+
+    # New fully optimized forward function
     def forward(self, input_ids, attention_mask):
-        """Processes input through the model to generate grid cell representations.
-
-        Takes tokenized input for each cell in the grid, processes it through BERT,
-        combines it with positional information, and generates final cell representations
-        through an encoder and classification head.
-
-        Args:
-            input_ids (torch.Tensor): Tensor of shape [batch_size, rows, cols, seq_len]
-            containing token IDs for each cell in the grid.
-            attention_mask (torch.Tensor): Tensor of shape [batch_size, rows, cols,     seq_len] containing attention masks for each cell.
-
-        Returns:
-            torch.Tensor: A tensor of shape [batch_size, rows, cols] containing the final
-        representations for each cell in the grid (S_cube).
-        """
-
-        # Retrieve dims and initialize init tensor for posContext embeddings
+        """Processes input through the model with fully vectorized operations."""
         batch_size, rows, cols, seq_len = input_ids.shape
-        posContext_embeddings = torch.zeros(
-            (batch_size, rows * cols, self.hidden_size),
-            device=input_ids.device,
-        )
 
-        # Build enriched encodings combining content and position understanding
-        for cell in range(rows * cols):
-
-            # Define row and column indices for current cell
-            row = cell // self.cols
-            col = cell % self.cols
-
-            # Calculate the enriched encoding for the cell
-            posContext_embeddings[:, cell, :] = (
-                self.bertModel_cell(
-                    input_ids=input_ids[:, row, col, :],
-                    attention_mask=attention_mask[:, row, col, :],
-                ).pooler_output
-                + self.pos_encodings[row]
-                + self.pos_encodings[col]
+        # Return the S_cube directly using pre-computed pos_encodings
+        return (
+            self.binary_classifier(
+                self.bertEncoder_spatial(
+                    (
+                        self.bertModel_cell(
+                            input_ids=input_ids.reshape(-1, seq_len),
+                            attention_mask=attention_mask.reshape(-1, seq_len),
+                        ).pooler_output.reshape(
+                            batch_size, rows * cols, self.hidden_size
+                        )
+                    )
+                    + self.pos_encodings.expand(batch_size, -1, -1)
+                )[0]
             )
-
-        # Process through encoder and classification head, reshape to grid format
-        S_cube = (
-            self.binary_classifier(self.bertEncoder_spatial(posContext_embeddings)[0])
             .squeeze(-1)
             .reshape(batch_size, rows, cols)
         )
-
-        # Return the S_cube
-        return S_cube
