@@ -39,7 +39,7 @@ def train_model(
 
     # 1b. OPTIMIZER
     opt = torch.optim.AdamW(
-        model.parameters(), lr=lr, betas=(0.85, 0.999), weight_decay=0.01
+        model.parameters(), lr=lr, betas=(0.85, 0.999), weight_decay=0.015
     )
 
     # 1c. DATALOADERS
