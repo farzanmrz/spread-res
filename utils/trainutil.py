@@ -38,7 +38,9 @@ def train_model(
     model_path, log_file = setup_logging(save_int, save_dir, save_name, config)
 
     # 1b. OPTIMIZER
-    opt = torch.optim.Adagrad(model.parameters(), lr=lr)
+    opt = torch.optim.AdamW(
+        model.parameters(), lr=lr, betas=(0.85, 0.999), weight_decay=0.01
+    )
 
     # 1c. DATALOADERS
     train_loader = torch.utils.data.DataLoader(
