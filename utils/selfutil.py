@@ -14,7 +14,7 @@ import warnings
 from collections import Counter
 
 import chardet
-import gensim.downloader as api
+#import gensim.downloader as api
 import numpy as np
 
 # Other imports

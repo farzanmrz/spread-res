@@ -60,12 +60,15 @@ def infer_one(
     loc=0,
     threshold=0.5,
     device="cuda:0",
-    approach="bert",
+    config=None,
     disp_sig=False,
 ):
     # Set pandas display options
     pd.set_option("display.max_rows", None)
     pd.set_option("display.max_columns", None)
+
+    # Extract approach from config
+    approach = config["approach"] if config else "bert"
 
     # Switch model to evaluation mode
     trained_model.eval()
@@ -145,13 +148,49 @@ def infer_one(
             # Print message
             print("No bold cells in the actual data.")
 
-    # Display metrics summary
-    print(
-        f"\nNB to B ratio: Predicted = {metrics['pred_non_bold_count']}:{metrics['pred_bold_count']} | "
-        f"Actual = {metrics['act_non_bold_count']}:{metrics['act_bold_count']}\n"
-        f"Accuracy: {metrics['accuracy'] * 100:.2f}% | Precision: {metrics['precision'] * 100:.2f}% | "
-        f"Recall: {metrics['recall'] * 100:.2f}% | F1-Score: {metrics['f1']:.2f}\n"
+    # Generate metrics summary text
+    metrics_ratio = (
+        f"NB to B ratio: Predicted = {metrics['pred_non_bold_count']}:{metrics['pred_bold_count']} | "
+        f"Actual = {metrics['act_non_bold_count']}:{metrics['act_bold_count']}"
     )
+
+    metrics_summary = (
+        f"Accuracy: {metrics['accuracy'] * 100:.2f}% | Precision: {metrics['precision'] * 100:.2f}% | "
+        f"Recall: {metrics['recall'] * 100:.2f}% | F1-Score: {metrics['f1']:.2f}"
+    )
+
+    # Display metrics summary
+    print(f"\n{metrics_ratio}\n{metrics_summary}\n")
+
+    # Determine data split type based on multiple detection methods
+    loader_type = "Unknown"
+
+    # Method 2: If still unknown and config is provided, compare with config directories
+    if (
+        loader_type == "Unknown"
+        and config
+        and hasattr(infer_loader, "file_paths")
+        and len(infer_loader.file_paths) > 0
+    ):
+        file_path = infer_loader.file_paths[0]
+
+        # Compare with paths in config
+        if "train_dir" in config and config["train_dir"] in file_path:
+            loader_type = "Train"
+        elif "val_dir" in config and config["val_dir"] in file_path:
+            loader_type = "Val"
+        elif "test_dir" in config and config["test_dir"] in file_path:
+            loader_type = "Test"
+
+    # Log metrics to file if save_int > 0
+    if config and config.get("save_int", 0) > 0:
+        log_file = os.path.join(config["save_dir"], f"{config['save_name']}.txt")
+
+        if os.path.exists(log_file):
+            with open(log_file, "a") as log:
+                log.write(f"\nInferOne {loader_type}\n")
+                log.write(f"{metrics_ratio}\n")
+                log.write(f"{metrics_summary}\n")
 
     # Retrive confusion matrix from metrics
     cm = metrics["confusion_matrix"]
@@ -212,7 +251,7 @@ def infer_full(
     batch_size=8,
     threshold=0.5,
     device="cuda:0",
-    approach="bert",
+    config=None,
 ):
     """
     Runs inference on a dataset with batching, computes average metrics across all files, and handles class imbalance.
@@ -223,10 +262,14 @@ def infer_full(
         batch_size: Number of examples per batch for inference.
         threshold: Threshold for classification decision.
         device: Device to run inference on (e.g., "cuda:0" or "cpu").
+        config: Configuration dictionary.
 
     Returns:
         None
     """
+    # Extract approach from config
+    approach = config["approach"] if config else "bert"
+
     # Create DataLoader for batching directly from infer_loader
     batch_loader = torch.utils.data.DataLoader(
         infer_loader, batch_size=batch_size, shuffle=False
@@ -275,14 +318,50 @@ def infer_full(
         key: cumulative_metrics[key] / num_batches for key in cumulative_metrics
     }
 
+    # Create metrics summary strings
+    metrics_ratio = (
+        f"NB to B ratio: Predicted = {total_pred_non_bold}:{total_pred_bold} | "
+        f"Actual = {total_act_non_bold}:{total_act_bold}"
+    )
+
+    metrics_summary = (
+        f"Accuracy: {avg_metrics['accuracy'] * 100:.2f}% | Precision: {avg_metrics['precision'] * 100:.2f}% | "
+        f"Recall: {avg_metrics['recall'] * 100:.2f}% | F1-Score: {avg_metrics['f1']:.2f}"
+    )
+
     # Display aggregated results
     print(f"\n--- Aggregated Metrics Across All Batches ---")
-    print(
-        f"\nNB to B ratio: Predicted = {total_pred_non_bold}:{total_pred_bold} | "
-        f"Actual = {total_act_non_bold}:{total_act_bold}\n"
-        f"Accuracy: {avg_metrics['accuracy'] * 100:.2f}% | Precision: {avg_metrics['precision'] * 100:.2f}% | "
-        f"Recall: {avg_metrics['recall'] * 100:.2f}% | F1-Score: {avg_metrics['f1']:.2f}\n"
-    )
+    print(f"\n{metrics_ratio}\n{metrics_summary}\n")
+
+    # Determine data split type based on multiple detection methods
+    loader_type = "Unknown"
+
+    # Method 2: If still unknown and config is provided, compare with config directories
+    if (
+        loader_type == "Unknown"
+        and config
+        and hasattr(infer_loader, "file_paths")
+        and len(infer_loader.file_paths) > 0
+    ):
+        file_path = infer_loader.file_paths[0]
+
+        # Compare with paths in config
+        if "train_dir" in config and config["train_dir"] in file_path:
+            loader_type = "Train"
+        elif "val_dir" in config and config["val_dir"] in file_path:
+            loader_type = "Val"
+        elif "test_dir" in config and config["test_dir"] in file_path:
+            loader_type = "Test"
+
+    # Log metrics to file if save_int > 0
+    if config and config.get("save_int", 0) > 0:
+        log_file = os.path.join(config["save_dir"], f"{config['save_name']}.txt")
+
+        if os.path.exists(log_file):
+            with open(log_file, "a") as log:
+                log.write(f"\nInferFull {loader_type}\n")
+                log.write(f"{metrics_ratio}\n")
+                log.write(f"{metrics_summary}\n")
 
     # Confusion matrix visualization
     cm = total_confusion_matrix

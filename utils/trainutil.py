@@ -32,6 +32,9 @@ def train_model(
     Unified training function that handles both BERT and non-BERT models.
     """
 
+    # Record training start time
+    start_time = time.time()
+
     # ---------- 1. SETUP ----------#
 
     # 1a. LOGGING MODEL PATH AND FILE
@@ -171,6 +174,11 @@ def train_model(
             nimp_ctr += 1
 
         if nimp_ctr >= patience:
+            # Calculate current training time
+            current_train_time = time.time() - start_time
+            mins, secs = divmod(current_train_time, 60)
+            time_str = f"{int(mins):02d}:{int(secs):02d}"
+
             print(f"\nEARLY STOPPING at epoch {epoch}, best epoch {best_epoch}")
             if isPerp:
                 print(
@@ -183,6 +191,8 @@ def train_model(
                 print(
                     f"Train Loss = {best_avgtrloss:.4e}, Val Loss = {best_avgvalloss:.4e}"
                 )
+            print(f"Total Training Time = {time_str}")
+
             if save_int > 0:
                 with open(log_file, "a") as log:
                     log.write(
@@ -194,6 +204,7 @@ def train_model(
                     log.write(
                         f"Val Loss = {best_avgvalloss}, Perplexity = {best_valperp}\n"
                     )
+                    log.write(f"Total Training Time = {time_str}\n")
             isTraining = False
 
         # Save model if needed
@@ -206,10 +217,16 @@ def train_model(
         epoch += 1
         print()
 
+    # Calculate total training time
+    total_train_time = time.time() - start_time
+    mins, secs = divmod(total_train_time, 60)
+    time_str = f"{int(mins):02d}:{int(secs):02d}"
+
     # Final print
     print(f"\nTRAINING DONE at epoch {epoch-1}, best epoch {best_epoch}")
     print(f"Train Loss = {best_avgtrloss}, Perplexity = {best_perp}")
     print(f"Val Loss = {best_avgvalloss}, Perplexity = {best_valperp}")
+    print(f"Total Training Time = {time_str}")
 
     # Final save and logging
     if save_int > 0:
@@ -218,6 +235,7 @@ def train_model(
             log.write(f"\nTRAINING DONE at epoch {epoch-1}, best epoch {best_epoch}\n")
             log.write(f"Train Loss = {best_avgtrloss}, Perplexity = {best_perp}\n")
             log.write(f"Val Loss = {best_avgvalloss}, Perplexity = {best_valperp}\n")
+            log.write(f"Total Training Time = {time_str}\n")
 
     return model
 
@@ -270,10 +288,9 @@ def setup_logging(save_int, save_dir, save_name, config):
     if not os.path.exists(save_dir):
         raise ValueError(f"Directory '{save_dir}' DNE")
 
-    # Setup paths using timestamp
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
-    model_path = os.path.join(save_dir, f"{save_name}_{timestamp}.pth")
-    log_file = os.path.join(save_dir, f"{save_name}_{timestamp}.txt")
+    # Setup paths using the save_name directly (timestamp now included in save_name)
+    model_path = os.path.join(save_dir, f"{save_name}.pth")
+    log_file = os.path.join(save_dir, f"{save_name}.txt")
 
     # Handle config logging if config provided
     if config is not None:

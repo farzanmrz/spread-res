@@ -3,6 +3,7 @@ import copy
 import importlib
 import json
 import os
+import time
 
 import torch
 from transformers import AutoTokenizer
@@ -350,47 +351,15 @@ def h_name(config):
 
     ### BASE FORMAT SAME FOR ALL APPROACHES ###
 
-    # 1. First string: approach + seed + env + model_name
-    first_str = (
-        config["env"].lower()[:1] + config["model_name"] + "_" + config["data_ds"]
-    )
-
-    # 2. Second string: dataset + training params
-    second_str = (
-        config["data_ds"]
-        + "ba"
-        + str(config["batch_size"])
-        + "lr"
-        + f"{config['lr']:.0e}".replace("e-0", "e-")
-        + "ep"
-        + str(config["epochs"])
-        + "pa"
-        + str(config["patience"])
+    # 1. env 1st letter + model name + ds + current time
+    return (
+        config["env"].lower()[:1]
+        + config["model_name"]
         + "_"
+        + config["data_ds"]
+        + "_"
+        + time.strftime("%m%d%H%M")
     )
-
-    # 3. Architecture specific strings always include vocab size
-    third_str = "v" + str(config["vocab_size"] // 1000) + "K"
-
-    # If bert or rnn
-    if config["approach"] in ["rnn", "bert"]:
-        third_str += f"h{config['hidden_size']}l{config['num_hidden_layers']}"
-
-        # If bert
-        if config["approach"] == "bert":
-            third_str += (
-                f"i{config['intermediate_size']}a{config['num_attention_heads']}"
-            )
-
-    # If saffu
-    elif config["approach"] == "saffu":
-        third_str += "saffu"
-
-    # # Combine all parts and return
-    # return first_str + second_str + third_str
-
-    # Simplified name to only return first part only required stuff
-    return first_str
 
 
 def h_training(config, input_config):
@@ -573,10 +542,13 @@ def setup_config(input_config):
     # 11. Training parameters and save name
     config = h_training(config, input_config)
 
+    # 12. Display the config
+    h_displayConfig(config)
+
     return config
 
 
-def display_config(config):
+def h_displayConfig(config):
     """Display configuration in a readable format."""
     serializable_config = {
         k: (
