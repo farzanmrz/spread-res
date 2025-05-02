@@ -1,0 +1,216 @@
+
+Final configuration:
+{
+  "env": "colab",
+  "approach": "bert",
+  "THREADS": 10,
+  "seed": 0,
+  "model_base": "bert-base-cased",
+  "model_name": "BertGrid",
+  "rows": 100,
+  "cols": 100,
+  "tokens": 32,
+  "data_ds": "50",
+  "data_dir": "../data",
+  "train_dir": "../data/50_train",
+  "val_dir": "../data/50_val",
+  "test_dir": "../data/50_test",
+  "vocab_size": 30522,
+  "hidden_size": 128,
+  "num_hidden_layers": 2,
+  "num_attention_heads": 2,
+  "intermediate_size": 512,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "attention_probs_dropout_prob": 0.1,
+  "max_position_embeddings": 64,
+  "type_vocab_size": 2,
+  "initializer_range": 0.02,
+  "layer_norm_eps": 1e-12,
+  "pad_token_id": 0,
+  "gradient_checkpointing": false,
+  "batch_size": 2,
+  "lr": 5e-05,
+  "mu": 0.25,
+  "epochs": 50,
+  "patience": 2,
+  "save_int": 5,
+  "save_dir": "../models/",
+  "save_name": "cBertGrid_50_05021220"
+}
+
+================================================================================
+
+
+Epoch 0
+Train Loss: 1.3946937173604965, Perplexity: 1.0000697371173877
+Val Loss: 1.5409024357795715, Perplexity: 1.0000770480898407
+
+Epoch 1
+Train Loss: 1.1632248967885972, Perplexity: 1.0000581629362375
+Val Loss: 1.2607521414756775, Perplexity: 1.0000630395939856
+
+Epoch 2
+Train Loss: 1.0517873629927634, Perplexity: 1.0000525907509947
+Val Loss: 1.0135810772577922, Perplexity: 1.0000506803380678
+
+Epoch 3
+Train Loss: 0.9107945486903191, Perplexity: 1.0000455407643836
+Val Loss: 0.7714455922444662, Perplexity: 1.0000385730235322
+
+Epoch 4
+Train Loss: 0.7415909618139267, Perplexity: 1.0000370802355456
+Val Loss: 0.495710829893748, Perplexity: 1.0000247858486588
+Model Saved
+
+Epoch 5
+Train Loss: 0.4329182870686054, Perplexity: 1.000021646148628
+Val Loss: 0.23698904862006506, Perplexity: 1.000011849522636
+
+Epoch 6
+Train Loss: 0.2813644129782915, Perplexity: 1.0000140683196068
+Val Loss: 0.16337659458319345, Perplexity: 1.0000081688630942
+
+Epoch 7
+Train Loss: 0.19780657421797515, Perplexity: 1.0000098903776204
+Val Loss: 0.12950115650892258, Perplexity: 1.0000064750787887
+
+Epoch 8
+Train Loss: 0.1948103101924062, Perplexity: 1.0000097405629487
+Val Loss: 0.11910344411929448, Perplexity: 1.000005955189938
+
+Epoch 9
+Train Loss: 0.16546187810599805, Perplexity: 1.0000082731281275
+Val Loss: 0.1111637478073438, Perplexity: 1.000005558202837
+Model Saved
+
+Epoch 10
+Train Loss: 0.18582733236253263, Perplexity: 1.000009291409783
+Val Loss: 0.10643162950873375, Perplexity: 1.000005321595635
+
+Epoch 11
+Train Loss: 0.17053777929395436, Perplexity: 1.0000085269253187
+Val Loss: 0.10361395652095477, Perplexity: 1.0000051807112458
+
+Epoch 12
+Train Loss: 0.15214997828006743, Perplexity: 1.000007607527851
+Val Loss: 0.09606816122929256, Perplexity: 1.0000048034195979
+
+Epoch 13
+Train Loss: 0.12825778741389512, Perplexity: 1.0000064129099333
+Val Loss: 0.09353171288967133, Perplexity: 1.0000046765965798
+
+Epoch 14
+Train Loss: 0.1346127082593739, Perplexity: 1.0000067306580638
+Val Loss: 0.09426589806874593, Perplexity: 1.000004713306011
+Model Saved
+
+Epoch 15
+Train Loss: 0.10829263590276242, Perplexity: 1.0000054146464543
+Val Loss: 0.106052881727616, Perplexity: 1.0000053026581455
+
+EARLY STOPPING at epoch 15, best epoch 13
+Train Loss = 0.12825778741389512, Perplexity = 1.0000064129099333
+Val Loss = 0.09353171288967133, Perplexity = 1.0000046765965798
+Total Training Time = 01:52
+
+TRAINING DONE at epoch 15, best epoch 13
+Train Loss = 0.12825778741389512, Perplexity = 1.0000064129099333
+Val Loss = 0.09353171288967133, Perplexity = 1.0000046765965798
+Total Training Time = 01:52
+
+InferOne Train
+NB to B ratio: Predicted = 9978:22 | Actual = 9985:15
+Accuracy: 99.93% | Precision: 68.18% | Recall: 100.00% | F1-Score: 0.81
+
+InferOne Val
+NB to B ratio: Predicted = 9958:42 | Actual = 9992:8
+Accuracy: 99.62% | Precision: 14.29% | Recall: 75.00% | F1-Score: 0.24
+
+InferOne Test
+NB to B ratio: Predicted = 9897:103 | Actual = 9900:100
+Accuracy: 99.63% | Precision: 80.58% | Recall: 83.00% | F1-Score: 0.82
+
+InferFull Train
+NB to B ratio: Predicted = 398823:1177 | Actual = 399199:801
+Accuracy: 99.82% | Precision: 39.89% | Recall: 62.24% | F1-Score: 0.45
+
+InferFull Val
+NB to B ratio: Predicted = 49783:217 | Actual = 49846:154
+Accuracy: 99.77% | Precision: 54.97% | Recall: 78.36% | F1-Score: 0.58
+
+InferFull Test
+NB to B ratio: Predicted = 49654:346 | Actual = 49801:199
+Accuracy: 99.42% | Precision: 26.02% | Recall: 44.23% | F1-Score: 0.32
+
+InferOne Train
+NB to B ratio: Predicted = 9962:38 | Actual = 9985:15
+Accuracy: 99.77% | Precision: 39.47% | Recall: 100.00% | F1-Score: 0.57
+
+InferOne Val
+NB to B ratio: Predicted = 9951:49 | Actual = 9992:8
+Accuracy: 99.57% | Precision: 14.29% | Recall: 87.50% | F1-Score: 0.25
+
+InferOne Test
+NB to B ratio: Predicted = 9807:193 | Actual = 9900:100
+Accuracy: 98.89% | Precision: 47.15% | Recall: 91.00% | F1-Score: 0.62
+
+InferFull Train
+NB to B ratio: Predicted = 398081:1919 | Actual = 399199:801
+Accuracy: 99.69% | Precision: 31.37% | Recall: 71.46% | F1-Score: 0.41
+
+InferFull Val
+NB to B ratio: Predicted = 49657:343 | Actual = 49846:154
+Accuracy: 99.62% | Precision: 42.59% | Recall: 92.11% | F1-Score: 0.54
+
+InferFull Test
+NB to B ratio: Predicted = 49318:682 | Actual = 49801:199
+Accuracy: 98.91% | Precision: 20.27% | Recall: 59.66% | F1-Score: 0.30
+
+InferOne Train
+NB to B ratio: Predicted = 9996:4 | Actual = 9985:15
+Accuracy: 99.89% | Precision: 100.00% | Recall: 26.67% | F1-Score: 0.42
+
+InferOne Val
+NB to B ratio: Predicted = 9990:10 | Actual = 9992:8
+Accuracy: 99.90% | Precision: 40.00% | Recall: 50.00% | F1-Score: 0.44
+
+InferOne Test
+NB to B ratio: Predicted = 9972:28 | Actual = 9900:100
+Accuracy: 99.28% | Precision: 100.00% | Recall: 28.00% | F1-Score: 0.44
+
+InferFull Train
+NB to B ratio: Predicted = 399690:310 | Actual = 399199:801
+Accuracy: 99.82% | Precision: 46.04% | Recall: 25.73% | F1-Score: 0.28
+
+InferFull Val
+NB to B ratio: Predicted = 49940:60 | Actual = 49846:154
+Accuracy: 99.72% | Precision: 65.56% | Recall: 32.52% | F1-Score: 0.36
+
+InferFull Test
+NB to B ratio: Predicted = 49922:78 | Actual = 49801:199
+Accuracy: 99.63% | Precision: 30.98% | Recall: 13.39% | F1-Score: 0.19
+
+InferOne Train
+NB to B ratio: Predicted = 9978:22 | Actual = 9985:15
+Accuracy: 99.93% | Precision: 68.18% | Recall: 100.00% | F1-Score: 0.81
+
+InferOne Val
+NB to B ratio: Predicted = 9958:42 | Actual = 9992:8
+Accuracy: 99.62% | Precision: 14.29% | Recall: 75.00% | F1-Score: 0.24
+
+InferOne Test
+NB to B ratio: Predicted = 9897:103 | Actual = 9900:100
+Accuracy: 99.63% | Precision: 80.58% | Recall: 83.00% | F1-Score: 0.82
+
+InferFull Train
+NB to B ratio: Predicted = 398823:1177 | Actual = 399199:801
+Accuracy: 99.82% | Precision: 39.89% | Recall: 62.24% | F1-Score: 0.45
+
+InferFull Val
+NB to B ratio: Predicted = 49783:217 | Actual = 49846:154
+Accuracy: 99.77% | Precision: 54.97% | Recall: 78.36% | F1-Score: 0.58
+
+InferFull Test
+NB to B ratio: Predicted = 49654:346 | Actual = 49801:199
+Accuracy: 99.42% | Precision: 26.02% | Recall: 44.23% | F1-Score: 0.32
