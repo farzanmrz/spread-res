@@ -312,12 +312,16 @@ def xls_content(cell, workbook, df, row, col):
                 return 9, str(df.iat[row, col])  # Time type
 
             elif date_tuple[3:] == (0, 0, 0):
-                return 8, str(df.iat[row, col])  # Date type
+                return 8, str(df.iat[row, col]).split(" ")[0]  # Date type
 
-            return 10, str(df.iat[row, col])  # Datetime type
+            return 10, str(df.iat[row, col]).replace(
+                "1900-", "2000-", 1
+            )  # Datetime type
 
         except (XLDateError, XLDateAmbiguous):
-            return 10, str(df.iat[row, col])  # Datetime type
+            return 10, str(df.iat[row, col]).replace(
+                "1900-", "2000-", 1
+            )  # Datetime type
 
     # Boolean cell
     elif cell.ctype == 4:
