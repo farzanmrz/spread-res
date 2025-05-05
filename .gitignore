@@ -20,6 +20,8 @@ saffu/
 files/saffu/
 saffu_git/
 saffu_loc/
+src/
+
 # GSuite files cause issues idk why
 .gdoc
 .gsheet
