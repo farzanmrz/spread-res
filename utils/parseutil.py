@@ -683,7 +683,10 @@ def xlsx_content(cell_type, cell):
             return str(cell.value)
 
     # If date subclass then use the df to return value
-    elif cell_type in [8, 9, 10]:
+    elif cell_type == 8:
+        return str(cell.value).split(" ")[0]
+
+    elif cell_type in [9, 10]:
         return str(cell.value)
 
     # If boolean cell then use df to get string
