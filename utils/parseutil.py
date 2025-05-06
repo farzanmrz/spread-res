@@ -76,7 +76,6 @@ def h_tensors(max_rows, max_cols, pad_length, tokenizer=None, vocab=None):
     # Initialize tokens with default sequence
     for r in range(max_rows):
         for c in range(max_cols):
-            # x_tok[r, c, :] = torch.tensor(minimal_ids, dtype=torch.long)
 
             if isBert:
                 x_tok[r, c, :] = torch.tensor(minimal_ids, dtype=torch.long)
