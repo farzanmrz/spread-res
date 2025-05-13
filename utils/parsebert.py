@@ -48,7 +48,7 @@ def h_tensors(max_rows, max_cols, pad_length, tokenizer):
         tuple: (x_tok, x_masks, y_tok)
     """
     # Initialize tensors
-    y_tok = torch.zeros((max_rows, max_cols, 17), dtype=torch.long)
+    y_tok = torch.zeros((max_rows, max_cols, 18), dtype=torch.long)
     x_tok = torch.zeros((max_rows, max_cols, pad_length), dtype=torch.long)
     x_masks = torch.zeros((max_rows, max_cols, pad_length), dtype=torch.long)
 
@@ -84,8 +84,9 @@ def h_cleanmetadata(row, col, x_tok, y_tok, x_masks):
     """
     # If it is an empty/blank cell then further processing is required
     if y_tok[row, col, 0] in [0, 13, 14]:
-        # Set font-related metadata to 0 (indices 4 to 10)
-        y_tok[row, col, 4:11] = 0
+
+        # Set font-related metadata to 0 (indices 4 to 11)
+        y_tok[row, col, 0:12] = 0
 
         # If the cell is of the type center-across formatting
         if y_tok[row, col, 2] == 6:
@@ -134,6 +135,28 @@ def h_encode(cell_value, row, col, x_tok, x_masks, pad_length, tokenizer):
     x_masks[row, col, :] = encoded_value["attention_mask"][0]
 
     return x_tok, x_masks
+
+
+# [1d] Determines the casing given text
+def h_case(text):
+
+    # If text is empty or contains no alphabets, return 0 (N/A)
+    if not text or not any(c.isalpha() for c in text):
+        return 0
+
+    # Get all alphabetic characters
+    alpha_chars = [c for c in text if c.isalpha()]
+
+    # Check if all alphabetic chars are lowercase
+    if all(c.islower() for c in alpha_chars):
+        return 1
+
+    # Check if all alphabetic chars are uppercase
+    if all(c.isupper() for c in alpha_chars):
+        return 2
+
+    # If we get here, it must be mixed case
+    return 3
 
 
 """
@@ -349,15 +372,15 @@ def xls_mergedata(sheet, x_tok, y_tok, x_masks, max_rows, max_cols):
         ):
             x_tok[row, col, :] = x_tok_start
             x_masks[row, col, :] = x_masks_start
-            # Duplicate y_tok values excluding indices 15 and 16
-            y_tok[row, col, :15] = y_tok_start[:15]
-            y_tok[row, col, 17:] = y_tok_start[17:]
+            # Duplicate y_tok values excluding indices 16 and 17
+            y_tok[row, col, :16] = y_tok_start[:16]
+            y_tok[row, col, 18:] = y_tok_start[18:]
 
     return x_tok, y_tok, x_masks
 
 
 # [2e] Function to retrieve xls cell's metadata
-def xls_metadata(cell, workbook, row, col, sheet, cell_type):
+def xls_metadata(cell, workbook, row, col, sheet, cell_type, cell_content):
     """
     Extracts metadata from an XLS cell and returns it as a dictionary.
 
@@ -383,16 +406,27 @@ def xls_metadata(cell, workbook, row, col, sheet, cell_type):
         "fill": xls_fill(xf_record, workbook),  # Background fill
         "halign": xf_record.alignment.hor_align,  # Horizontal alignment
         "valign": xf_record.alignment.vert_align,  # Vertical alignment
-        "font_family": workbook.font_list[xf_record.font_index].family,  # Font family
+        "font_family": (
+            workbook.font_list[xf_record.font_index].family - 32
+            if workbook.font_list[xf_record.font_index].family >= 32
+            else workbook.font_list[xf_record.font_index].family
+        ),  # Font family
         "font_size": workbook.font_list[xf_record.font_index].height // 20,  # Font size
         "bold": workbook.font_list[xf_record.font_index].bold,  # Bold flag
         "italic": workbook.font_list[xf_record.font_index].italic,  # Italic flag
-        "underline": workbook.font_list[
-            xf_record.font_index
-        ].underline_type,  # Underline
+        "underline": (
+            1
+            if workbook.font_list[xf_record.font_index].underline_type == 33
+            else (
+                2
+                if workbook.font_list[xf_record.font_index].underline_type == 34
+                else workbook.font_list[xf_record.font_index].underline_type
+            )
+        ),  # Underline
         "esc": workbook.font_list[
             xf_record.font_index
         ].escapement,  # Superscript/subscript
+        "case": h_case(cell_content),  # Casing
         "font_color": (
             1 if (rgb and rgb != (0, 0, 0)) else 0
         ),  # Text color (1 if colored, else 0)
@@ -408,7 +442,7 @@ def xls_metadata(cell, workbook, row, col, sheet, cell_type):
 
 
 # [2f] Main func for processing xls files
-def test_xls(file_path, max_rows=100, max_cols=100, pad_length=32, tokenizer=None):
+def process_xls(file_path, max_rows=100, max_cols=100, pad_length=32, tokenizer=None):
 
     # Initialize tensors
     x_tok, x_masks, y_tok = h_tensors(max_rows, max_cols, pad_length, tokenizer)
@@ -447,7 +481,9 @@ def test_xls(file_path, max_rows=100, max_cols=100, pad_length=32, tokenizer=Non
         cell_type, cell_content = xls_content(cell, workbook, df, row, col)
 
         # Retrieve metadata using xls_metadata function
-        cell_metadata = xls_metadata(cell, workbook, row, col, sheet, cell_type)
+        cell_metadata = xls_metadata(
+            cell, workbook, row, col, sheet, cell_type, cell_content
+        )
 
         # Encode cell value
         x_tok, x_masks = h_encode(
@@ -844,15 +880,15 @@ def xlsx_mergedata(sheet, x_tok, y_tok, x_masks, max_rows, max_cols):
         ):
             if rr < max_rows and cc < max_cols:  # Clip bounds
                 x_tok[rr, cc, :] = x_tok_start
-                y_tok[rr, cc, :15] = y_tok_start[:15]
-                y_tok[rr, cc, 17:] = y_tok_start[17:]
+                y_tok[rr, cc, :16] = y_tok_start[:16]
+                y_tok[rr, cc, 18:] = y_tok_start[18:]
                 x_masks[rr, cc, :] = x_masks_start
 
     return x_tok, y_tok, x_masks
 
 
 # [3h] Function to retrieve xlsx cell's metadata
-def xlsx_metadata(cell, row, col, sheet):
+def xlsx_metadata(cell, row, col, sheet, cell_type, cell_content):
     """
     Extracts metadata from an XLSX cell and returns it as a dictionary.
 
@@ -872,7 +908,7 @@ def xlsx_metadata(cell, row, col, sheet):
 
     # Construct metadata dictionary in the same order as manual y_tok assignments
     cell_metadata = {
-        "type": xlsx_dataType(cell.value, cell.number_format),
+        "type": cell_type,
         "fill": (
             0
             if (
@@ -899,6 +935,7 @@ def xlsx_metadata(cell, row, col, sheet):
             if cell.font.vertAlign == "superscript"
             else 2 if cell.font.vertAlign == "subscript" else 0
         ),
+        "case": h_case(cell_content),
         "font_color": xlsx_fontcol(cell),
         "btop": btop,
         "bbottom": bbot,
@@ -912,7 +949,7 @@ def xlsx_metadata(cell, row, col, sheet):
 
 
 # [3i] Main processing func
-def test_xlsx(file_path, max_rows=100, max_cols=100, pad_length=32, tokenizer=None):
+def process_xlsx(file_path, max_rows=100, max_cols=100, pad_length=32, tokenizer=None):
     """
     Extracts metadata for each cell in the first sheet of the given spreadsheet and tokenizes cell values.
 
@@ -948,11 +985,14 @@ def test_xlsx(file_path, max_rows=100, max_cols=100, pad_length=32, tokenizer=No
         # Adjust to 1-based indexing
         cell = sheet.cell(row=row + 1, column=col + 1)
 
-        # Extract cell metadata
-        cell_metadata = xlsx_metadata(cell, row, col, sheet)
+        # Extract cell type
+        cell_type = xlsx_dataType(cell.value, cell.number_format)
 
         # Use the cell type to get value
-        cell_content = xlsx_content(cell_metadata["type"], cell)
+        cell_content = xlsx_content(cell_type, cell)
+
+        # Extract cell metadata
+        cell_metadata = xlsx_metadata(cell, row, col, sheet, cell_type, cell_content)
 
         # Encode cell value
         x_tok, x_masks = h_encode(
@@ -1092,7 +1132,7 @@ def csv_dataType(value: str) -> int:
 
 
 # [4c] Main processing function
-def test_csv(file_path, max_rows=100, max_cols=100, pad_length=32, tokenizer=None):
+def process_csv(file_path, max_rows=100, max_cols=100, pad_length=32, tokenizer=None):
     """
     Extracts metadata and tokenized values for each cell in a CSV file.
 
@@ -1150,7 +1190,7 @@ def test_csv(file_path, max_rows=100, max_cols=100, pad_length=32, tokenizer=Non
                     # Set metadata based on cell type
                     if cell_type == 13:  # Blank cell
                         y_tok[row_index, col_index, :] = torch.zeros(
-                            17, dtype=torch.long
+                            18, dtype=torch.long
                         )
                     else:
                         # Standard CSV metadata setup
@@ -1160,7 +1200,7 @@ def test_csv(file_path, max_rows=100, max_cols=100, pad_length=32, tokenizer=Non
                         y_tok[row_index, col_index, 3] = 2  # Default vertical align
                         y_tok[row_index, col_index, 4] = 0
                         y_tok[row_index, col_index, 5] = 11
-                        y_tok[row_index, col_index, 6:17] = 0  # No formatting in CSV
+                        y_tok[row_index, col_index, 6:18] = 0  # No formatting in CSV
 
     # Return final tensors
     return x_tok, x_masks, y_tok
@@ -1174,7 +1214,7 @@ def test_csv(file_path, max_rows=100, max_cols=100, pad_length=32, tokenizer=Non
 
 
 # [5a] Main processor func to run file by file
-def test_spreadsheet(
+def process_spreadsheet(
     file_path: str,
     max_rows=100,
     max_cols=100,
@@ -1192,7 +1232,7 @@ def test_spreadsheet(
 
         # Process based on file extension
         if file_extension == "xls":
-            x_tok, x_masks, y_tok = test_xls(
+            x_tok, x_masks, y_tok = process_xls(
                 file_path,
                 max_rows=max_rows,
                 max_cols=max_cols,
@@ -1200,7 +1240,7 @@ def test_spreadsheet(
                 tokenizer=tokenizer,
             )
         elif file_extension == "xlsx":
-            x_tok, x_masks, y_tok = test_xlsx(
+            x_tok, x_masks, y_tok = process_xlsx(
                 file_path,
                 max_rows=max_rows,
                 max_cols=max_cols,
@@ -1208,7 +1248,7 @@ def test_spreadsheet(
                 tokenizer=tokenizer,
             )
         elif file_extension == "csv":
-            x_tok, x_masks, y_tok = test_csv(
+            x_tok, x_masks, y_tok = process_csv(
                 file_path,
                 max_rows=max_rows,
                 max_cols=max_cols,
@@ -1236,9 +1276,6 @@ def test_spreadsheet(
 # [6a] Function to exact match and compare tensors
 def compare_tensors(tensor1, tensor2):
 
-    # Print general separation line
-    print("-" * 80)
-
     # Check same device else move
     if tensor1.device != tensor2.device:
         print(
@@ -1249,28 +1286,28 @@ def compare_tensors(tensor1, tensor2):
     # If dimensions mismatch throw error
     if tensor1.shape != tensor2.shape:
         print(f"Dimensions Mismatch: {tensor1.shape} != {tensor2.shape}")
+        return False
 
-    # If the dimensions do match then check for equality
-    else:
+    # If the tensors are not equal
+    if not torch.equal(tensor1, tensor2):
 
-        # If the tensors are not equal
-        if not torch.equal(tensor1, tensor2):
+        # Find all differing elements and ensure on CPU
+        diff_indices = (tensor1.cpu() != tensor2.cpu()).nonzero(as_tuple=False)
 
-            # Find all differing elements and ensure on CPU
-            diff_indices = (tensor1.cpu() != tensor2.cpu()).nonzero(as_tuple=False)
+        # Print number of differences
+        print(f"Differences: {diff_indices.shape[0]}")
 
-            # Print number of differences
-            print(f"Differences: {diff_indices.shape[0]}")
+        # Go through each differing index
+        for i in range(min(diff_indices.shape[0], 100)):
 
-            # Go through each differing index
-            for i in range(min(diff_indices.shape[0], 100)):
+            # Get the index as a tuple of Python ints
+            idx = tuple(diff_indices[i].tolist())
 
-                # Get the index as a tuple of Python ints
-                idx = tuple(diff_indices[i].tolist())
+            # Print the differing values
+            print(f"{idx}: {tensor1[idx]} | {tensor2[idx]}")
 
-                # Print the differing values
-                print(f"{idx}: {tensor1[idx]} | {tensor2[idx]}")
+        # Return False
+        return False
 
-        # If the tensors are equal
-        else:
-            print(f"Differences: 0")
+    # If all values are equal
+    return True

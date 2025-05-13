@@ -401,6 +401,7 @@ def get_single_pred(trained_model, infer_loader, loc, device, approach):
         predictions = trained_model(
             infer_loader.x_tok[loc].unsqueeze(0).to(device),
             infer_loader.x_masks[loc].unsqueeze(0).to(device),
+            infer_loader.x_metadata[loc].unsqueeze(0).to(device),
         )
     elif approach == "simple":
         # Perform simple model inference using only input IDs
@@ -428,6 +429,7 @@ def get_multi_pred(trained_model, batch, device, approach):
         predictions = trained_model(
             batch["x_tok"].to(device),
             batch["x_masks"].to(device),
+            batch["x_metadata"].to(device),
         )
     elif approach == "simple":
         # Perform simple model inference using only input IDs
