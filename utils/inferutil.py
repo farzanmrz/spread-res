@@ -398,11 +398,19 @@ def get_single_pred(trained_model, infer_loader, loc, device, approach):
     """
     if approach == "bert":
         # Perform BERT-specific inference using input IDs and attention masks
-        predictions = trained_model(
-            infer_loader.x_tok[loc].unsqueeze(0).to(device),
-            infer_loader.x_masks[loc].unsqueeze(0).to(device),
-            infer_loader.x_metadata[loc].unsqueeze(0).to(device),
-        )
+        if hasattr(infer_loader, 'x_metadata'):
+            # Use metadata if available (new approach)
+            predictions = trained_model(
+                infer_loader.x_tok[loc].unsqueeze(0).to(device),
+                infer_loader.x_masks[loc].unsqueeze(0).to(device),
+                infer_loader.x_metadata[loc].unsqueeze(0).to(device),
+            )
+        else:
+            # Standard approach without metadata
+            predictions = trained_model(
+                infer_loader.x_tok[loc].unsqueeze(0).to(device),
+                infer_loader.x_masks[loc].unsqueeze(0).to(device),
+            )
     elif approach == "simple":
         # Perform simple model inference using only input IDs
         predictions = trained_model(infer_loader.x_tok[loc].unsqueeze(0).to(device))
@@ -426,11 +434,19 @@ def get_multi_pred(trained_model, batch, device, approach):
     """
     if approach == "bert":
         # Perform BERT-specific inference using input IDs and attention masks
-        predictions = trained_model(
-            batch["x_tok"].to(device),
-            batch["x_masks"].to(device),
-            batch["x_metadata"].to(device),
-        )
+        if "x_metadata" in batch:
+            # Use metadata if available (new approach)
+            predictions = trained_model(
+                batch["x_tok"].to(device),
+                batch["x_masks"].to(device),
+                batch["x_metadata"].to(device),
+            )
+        else:
+            # Standard approach without metadata
+            predictions = trained_model(
+                batch["x_tok"].to(device),
+                batch["x_masks"].to(device),
+            )
     elif approach == "simple":
         # Perform simple model inference using only input IDs
         predictions = trained_model(batch["x_tok"].to(device))

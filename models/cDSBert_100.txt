@@ -1,0 +1,99 @@
+
+Final configuration:
+{
+  "vocab_size": 30522,
+  "hidden_size": 128,
+  "num_hidden_layers": 2,
+  "num_attention_heads": 2,
+  "intermediate_size": 512,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "attention_probs_dropout_prob": 0.1,
+  "max_position_embeddings": 64,
+  "type_vocab_size": 2,
+  "initializer_range": 0.02,
+  "layer_norm_eps": 1e-12,
+  "pad_token_id": 0,
+  "gradient_checkpointing": false,
+  "seed": 0,
+  "rows": 100,
+  "cols": 100,
+  "tokens": 32,
+  "model_base": "bert-base-cased",
+  "batch_size": 2,
+  "lr": 5e-05,
+  "mu": 0.25,
+  "epochs": 20,
+  "patience": 1,
+  "save_int": 5,
+  "approach": "bert",
+  "save_dir": "../models/",
+  "save_name": "cDSBert_100"
+}
+
+================================================================================
+
+
+Epoch 0
+Train Loss: 1.2452404238283634, Perplexity: 1.0000622639595114
+Val Loss: 0.6800331473350525, Perplexity: 1.0000340022354297
+
+Epoch 1
+Train Loss: 0.876390752568841, Perplexity: 1.0000438204977184
+Val Loss: 0.4641349583864212, Perplexity: 1.000023207017198
+
+Epoch 2
+Train Loss: 0.6505463629961014, Perplexity: 1.0000325278471687
+Val Loss: 0.1570580244064331, Perplexity: 1.0000078529320544
+
+Epoch 3
+Train Loss: 0.3449538953602314, Perplexity: 1.0000172478435103
+Val Loss: 0.125062183663249, Perplexity: 1.000006253128734
+
+Epoch 4
+Train Loss: 0.2873949250904843, Perplexity: 1.0000143698494999
+Val Loss: 0.11938607469201087, Perplexity: 1.0000059693215508
+Model Saved
+
+Epoch 5
+Train Loss: 0.17282686079852283, Perplexity: 1.0000086413803764
+Val Loss: 0.11473949067294598, Perplexity: 1.00000573699099
+
+Epoch 6
+Train Loss: 0.24326927945949137, Perplexity: 1.0000121635379482
+Val Loss: 0.21660008132457734, Perplexity: 1.0000108300627109
+
+EARLY STOPPING at epoch 6, best epoch 5
+Train Loss = 0.17282686079852283, Perplexity = 1.0000086413803764
+Val Loss = 0.11473949067294598, Perplexity = 1.00000573699099
+Total Training Time = 01:35
+
+TRAINING DONE at epoch 6, best epoch 5
+Train Loss = 0.17282686079852283, Perplexity = 1.0000086413803764
+Val Loss = 0.11473949067294598, Perplexity = 1.00000573699099
+Total Training Time = 01:35
+
+InferOne Unknown
+NB to B ratio: Predicted = 9982:18 | Actual = 9993:7
+Accuracy: 99.75% | Precision: 0.00% | Recall: 0.00% | F1-Score: 0.00
+
+InferOne Unknown
+NB to B ratio: Predicted = 9998:2 | Actual = 10000:0
+Accuracy: 99.98% | Precision: 0.00% | Recall: 0.00% | F1-Score: 0.00
+
+InferOne Unknown
+NB to B ratio: Predicted = 9994:6 | Actual = 9992:8
+Accuracy: 99.88% | Precision: 16.67% | Recall: 12.50% | F1-Score: 0.14
+
+InferFull Unknown
+NB to B ratio: Predicted = 798974:1026 | Actual = 798331:1669
+Accuracy: 99.80% | Precision: 44.79% | Recall: 36.57% | F1-Score: 0.34
+
+InferFull Unknown
+NB to B ratio: Predicted = 99874:126 | Actual = 99866:134
+Accuracy: 99.84% | Precision: 32.22% | Recall: 33.11% | F1-Score: 0.28
+
+InferFull Unknown
+NB to B ratio: Predicted = 99852:148 | Actual = 99805:195
+Accuracy: 99.78% | Precision: 36.16% | Recall: 41.92% | F1-Score: 0.31
+
