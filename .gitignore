@@ -18,6 +18,8 @@ gensim-data/
 # Add saffu folder to ignore
 saffu/
 files/saffu/
+saffu_git/
+src/
 
 # GSuite files cause issues idk why
 .gdoc

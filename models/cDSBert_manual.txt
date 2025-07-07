@@ -1,0 +1,159 @@
+
+Final configuration:
+{
+  "vocab_size": 30522,
+  "hidden_size": 128,
+  "num_hidden_layers": 2,
+  "num_attention_heads": 2,
+  "intermediate_size": 512,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "attention_probs_dropout_prob": 0.1,
+  "max_position_embeddings": 64,
+  "type_vocab_size": 2,
+  "initializer_range": 0.02,
+  "layer_norm_eps": 1e-12,
+  "pad_token_id": 0,
+  "gradient_checkpointing": false,
+  "seed": 0,
+  "rows": 100,
+  "cols": 100,
+  "tokens": 32,
+  "model_base": "bert-base-cased",
+  "batch_size": 2,
+  "lr": 5e-05,
+  "mu": 0.25,
+  "epochs": 50,
+  "patience": 1,
+  "save_int": 5,
+  "approach": "bert"
+}
+
+================================================================================
+
+
+Epoch 0
+Train Loss: 1.0535289287567138, Perplexity: 1.0000526778338663
+Val Loss: 0.7476227283477783, Perplexity: 1.0000373818351007
+
+Epoch 1
+Train Loss: 0.6600279211997986, Perplexity: 1.000033001940612
+Val Loss: 0.45165106654167175, Perplexity: 1.000022582808315
+
+Epoch 2
+Train Loss: 0.39458841681480405, Perplexity: 1.0000197296154671
+Val Loss: 0.26955560843149823, Perplexity: 1.0000134778712473
+
+Epoch 3
+Train Loss: 0.21912065297365188, Perplexity: 1.0000109560926662
+Val Loss: 0.12257203211386998, Perplexity: 1.0000061286203856
+
+Epoch 4
+Train Loss: 0.10815102923661471, Perplexity: 1.0000054075660827
+Val Loss: 0.04770597691337267, Perplexity: 1.0000023853016904
+Model Saved
+
+Epoch 5
+Train Loss: 0.04352155951783061, Perplexity: 1.0000021760803435
+Val Loss: 0.022071098287900288, Perplexity: 1.0000011035555234
+
+Epoch 6
+Train Loss: 0.024715243931859733, Perplexity: 1.0000012357629602
+Val Loss: 0.012495381447176138, Perplexity: 1.0000006247692674
+
+Epoch 7
+Train Loss: 0.014978013932704926, Perplexity: 1.000000748900977
+Val Loss: 0.009678398879865805, Perplexity: 1.0000004839200611
+
+Epoch 8
+Train Loss: 0.012690315302461386, Perplexity: 1.0000006345159664
+Val Loss: 0.008410081267356873, Perplexity: 1.0000004205041517
+
+Epoch 9
+Train Loss: 0.010356294875964522, Perplexity: 1.0000005178148779
+Val Loss: 0.006850352821250756, Perplexity: 1.0000003425176998
+Model Saved
+
+Epoch 10
+Train Loss: 0.009723581676371395, Perplexity: 1.000000486179202
+Val Loss: 0.005936395997802417, Perplexity: 1.000000296819844
+
+Epoch 11
+Train Loss: 0.0074826008407399055, Perplexity: 1.000000374130112
+Val Loss: 0.005343376658856869, Perplexity: 1.0000002671688686
+
+Epoch 12
+Train Loss: 0.00658712291624397, Perplexity: 1.0000003293562
+Val Loss: 0.004803524507830541, Perplexity: 1.0000002401762542
+
+Epoch 13
+Train Loss: 0.006039853766560554, Perplexity: 1.000000301992734
+Val Loss: 0.00434016219029824, Perplexity: 1.000000217008133
+
+Epoch 14
+Train Loss: 0.005452089686878025, Perplexity: 1.0000002726045214
+Val Loss: 0.003968499523277084, Perplexity: 1.0000001984249958
+Model Saved
+
+Epoch 15
+Train Loss: 0.005355090042576194, Perplexity: 1.0000002677545379
+Val Loss: 0.003608850296586752, Perplexity: 1.0000001804425311
+
+Epoch 16
+Train Loss: 0.006373085896484554, Perplexity: 1.0000003186543456
+Val Loss: 0.0034849954148133597, Perplexity: 1.000000174249786
+
+Epoch 17
+Train Loss: 0.004477578785736114, Perplexity: 1.0000002238789643
+Val Loss: 0.0033266101963818073, Perplexity: 1.0000001663305236
+
+Epoch 18
+Train Loss: 0.004176085873041302, Perplexity: 1.0000002088043154
+Val Loss: 0.0029082552840312323, Perplexity: 1.0000001454127747
+
+Epoch 19
+Train Loss: 0.00512480732286349, Perplexity: 1.000000256240399
+Val Loss: 0.0027536237612366676, Perplexity: 1.0000001376811976
+Model Saved
+
+Epoch 20
+Train Loss: 0.0035921459319069983, Perplexity: 1.0000001796073128
+Val Loss: 0.0025587468408048153, Perplexity: 1.0000001279373503
+
+Epoch 21
+Train Loss: 0.005139332683756948, Perplexity: 1.0000002569666673
+Val Loss: 0.0025814414645234742, Perplexity: 1.0000001290720815
+
+EARLY STOPPING at epoch 21, best epoch 20
+Train Loss = 0.0035921459319069983, Perplexity = 1.0000001796073128
+Val Loss = 0.0025587468408048153, Perplexity = 1.0000001279373503
+Total Training Time = 02:28
+
+TRAINING DONE at epoch 21, best epoch 20
+Train Loss = 0.0035921459319069983, Perplexity = 1.0000001796073128
+Val Loss = 0.0025587468408048153, Perplexity = 1.0000001279373503
+Total Training Time = 02:28
+
+InferOne Unknown
+NB to B ratio: Predicted = 9881:119 | Actual = 9882:118
+Accuracy: 99.99% | Precision: 99.16% | Recall: 100.00% | F1-Score: 1.00
+
+InferOne Unknown
+NB to B ratio: Predicted = 9895:105 | Actual = 9896:104
+Accuracy: 99.99% | Precision: 99.05% | Recall: 100.00% | F1-Score: 1.00
+
+InferOne Unknown
+NB to B ratio: Predicted = 9862:138 | Actual = 9872:128
+Accuracy: 99.86% | Precision: 91.30% | Recall: 98.44% | F1-Score: 0.95
+
+InferFull Unknown
+NB to B ratio: Predicted = 396695:3305 | Actual = 396714:3286
+Accuracy: 100.00% | Precision: 99.48% | Recall: 100.00% | F1-Score: 1.00
+
+InferFull Unknown
+NB to B ratio: Predicted = 49600:400 | Actual = 49602:398
+Accuracy: 100.00% | Precision: 99.59% | Recall: 100.00% | F1-Score: 1.00
+
+InferFull Unknown
+NB to B ratio: Predicted = 49595:405 | Actual = 49606:394
+Accuracy: 99.98% | Precision: 97.87% | Recall: 99.65% | F1-Score: 0.99

@@ -1,0 +1,82 @@
+
+Final configuration:
+{
+  "vocab_size": 30522,
+  "hidden_size": 128,
+  "num_hidden_layers": 2,
+  "num_attention_heads": 2,
+  "intermediate_size": 512,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "attention_probs_dropout_prob": 0.1,
+  "max_position_embeddings": 64,
+  "type_vocab_size": 2,
+  "initializer_range": 0.02,
+  "layer_norm_eps": 1e-12,
+  "pad_token_id": 0,
+  "gradient_checkpointing": false,
+  "seed": 0,
+  "rows": 100,
+  "cols": 100,
+  "tokens": 32,
+  "model_base": "bert-base-cased",
+  "batch_size": 2,
+  "lr": 5e-05,
+  "mu": 0.25,
+  "epochs": 20,
+  "patience": 1,
+  "save_int": 5,
+  "approach": "bert",
+  "save_dir": "../models/",
+  "save_name": "cDSBert_1k"
+}
+
+================================================================================
+
+
+Epoch 0
+Train Loss: 1.0083466838044115, Perplexity: 1.0000504186051653
+Val Loss: 1.465235850447789, Perplexity: 1.0000732644762331
+
+Epoch 1
+Train Loss: 1.2209952060331124, Perplexity: 1.0000610516238762
+Val Loss: 0.7526841577608139, Perplexity: 1.0000376349160638
+
+Epoch 2
+Train Loss: 1.4601171581086236, Perplexity: 1.000073008522898
+Val Loss: 1.8842436944972725, Perplexity: 1.0000942166228322
+
+EARLY STOPPING at epoch 2, best epoch 1
+Train Loss = 1.2209952060331124, Perplexity = 1.0000610516238762
+Val Loss = 0.7526841577608139, Perplexity = 1.0000376349160638
+Total Training Time = 06:43
+
+TRAINING DONE at epoch 2, best epoch 1
+Train Loss = 1.2209952060331124, Perplexity = 1.0000610516238762
+Val Loss = 0.7526841577608139, Perplexity = 1.0000376349160638
+Total Training Time = 06:43
+
+
+InferOne Unknown
+NB to B ratio: Predicted = 9979:21 | Actual = 10000:0
+Accuracy: 99.79% | Precision: 0.00% | Recall: 0.00% | F1-Score: 0.00
+
+InferOne Unknown
+NB to B ratio: Predicted = 9982:18 | Actual = 9983:17
+Accuracy: 99.99% | Precision: 94.44% | Recall: 100.00% | F1-Score: 0.97
+
+InferOne Unknown
+NB to B ratio: Predicted = 9961:39 | Actual = 10000:0
+Accuracy: 99.61% | Precision: 0.00% | Recall: 0.00% | F1-Score: 0.00
+
+InferFull Unknown
+NB to B ratio: Predicted = 7975841:24159 | Actual = 7976877:23123
+Accuracy: 99.68% | Precision: 41.23% | Recall: 63.58% | F1-Score: 0.43
+
+InferFull Unknown
+NB to B ratio: Predicted = 997088:2912 | Actual = 997452:2548
+Accuracy: 99.70% | Precision: 34.44% | Recall: 55.03% | F1-Score: 0.34
+
+InferFull Unknown
+NB to B ratio: Predicted = 996864:3136 | Actual = 997581:2419
+Accuracy: 99.71% | Precision: 38.30% | Recall: 59.41% | F1-Score: 0.41

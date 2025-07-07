@@ -76,7 +76,6 @@ def h_tensors(max_rows, max_cols, pad_length, tokenizer=None, vocab=None):
     # Initialize tokens with default sequence
     for r in range(max_rows):
         for c in range(max_cols):
-            # x_tok[r, c, :] = torch.tensor(minimal_ids, dtype=torch.long)
 
             if isBert:
                 x_tok[r, c, :] = torch.tensor(minimal_ids, dtype=torch.long)
@@ -312,12 +311,16 @@ def xls_content(cell, workbook, df, row, col):
                 return 9, str(df.iat[row, col])  # Time type
 
             elif date_tuple[3:] == (0, 0, 0):
-                return 8, str(df.iat[row, col])  # Date type
+                return 8, str(df.iat[row, col]).split(" ")[0]  # Date type
 
-            return 10, str(df.iat[row, col])  # Datetime type
+            return 10, str(df.iat[row, col]).replace(
+                "1900-", "2000-", 1
+            )  # Datetime type
 
         except (XLDateError, XLDateAmbiguous):
-            return 10, str(df.iat[row, col])  # Datetime type
+            return 10, str(df.iat[row, col]).replace(
+                "1900-", "2000-", 1
+            )  # Datetime type
 
     # Boolean cell
     elif cell.ctype == 4:
@@ -679,7 +682,10 @@ def xlsx_content(cell_type, cell):
             return str(cell.value)
 
     # If date subclass then use the df to return value
-    elif cell_type in [8, 9, 10]:
+    elif cell_type == 8:
+        return str(cell.value).split(" ")[0]
+
+    elif cell_type in [9, 10]:
         return str(cell.value)
 
     # If boolean cell then use df to get string
