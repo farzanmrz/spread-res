@@ -3,13 +3,18 @@
 ##################################################################################
 #---------------------------------------------------------------------------------
 
+# VSCODE or IDE specific folders
+.claude/
+.vscode/
 
 # macOS/Windows system specific files
 .DS_Store
 Thumbs.db
+validated_links.json
+Icon?
 
 # Keep the "data/" folder structure but ignore its contents
-data/
+# data/
 #!data/**/.gitkeep
 
 # Specific folders to ignore that might be generated
