@@ -204,3 +204,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+#Google drive mirror files
+.tmp.drivedownload/
+.tmp.driveupload/
