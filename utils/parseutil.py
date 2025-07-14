@@ -397,7 +397,7 @@ def xls_metadata(cell, workbook, row, col, sheet, cell_type):
         sheet (xlrd.sheet.Sheet): The XLS sheet object.
 
     Returns:
-        dict: A dictionary (`cell_metadata`) containing 17 metadata fields for the cell.
+        dict: A dictionar y (`cell_metadata`) containing 17 metadata fields for the cell.
     """
     # Access the XFRecord object using the cell's XF index
     xf_record = workbook.xf_list[cell.xf_index]
