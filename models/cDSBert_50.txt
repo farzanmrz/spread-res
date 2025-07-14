@@ -35,68 +35,72 @@ Final configuration:
 
 
 Epoch 0
-Train Loss: 1.2349455788731576, Perplexity: 1.000061749185346
-Val Loss: 0.9848948121070862, Perplexity: 1.0000492459531476
+Train Loss: 1.3008068397641182, Perplexity: 1.000065042457157
+Val Loss: 1.0509632428487141, Perplexity: 1.0000525495428212
 
 Epoch 1
-Train Loss: 1.029171171784401, Perplexity: 1.0000514598826036
-Val Loss: 0.7904752989610037, Perplexity: 1.0000395245460223
+Train Loss: 1.0574225440621376, Perplexity: 1.0000528725249058
+Val Loss: 0.7950464685757955, Perplexity: 1.000039753113563
 
 Epoch 2
-Train Loss: 0.8741892218589783, Perplexity: 1.0000437104163653
-Val Loss: 0.6432644526163737, Perplexity: 1.0000321637398728
+Train Loss: 0.8937264382839203, Perplexity: 1.0000446873203628
+Val Loss: 0.6011709968249003, Perplexity: 1.000030059001604
 
 Epoch 3
-Train Loss: 0.749422287195921, Perplexity: 1.0000374718164107
-Val Loss: 0.35687515636285144, Perplexity: 1.0000178439170189
+Train Loss: 0.9104449711740017, Perplexity: 1.000045523284712
+Val Loss: 0.42692775030930835, Perplexity: 1.0000213466153511
 
 Epoch 4
-Train Loss: 0.47205452285706995, Perplexity: 1.0000236030046894
-Val Loss: 0.1535952016711235, Perplexity: 1.000007679789573
+Train Loss: 0.5631422147154808, Perplexity: 1.000028157507151
+Val Loss: 0.2540229583779971, Perplexity: 1.0000127012285789
 Model Saved
 
 Epoch 5
-Train Loss: 0.27859539948403833, Perplexity: 1.000013929866994
-Val Loss: 0.09116433064142863, Perplexity: 1.0000045582269208
+Train Loss: 0.32476526238024234, Perplexity: 1.0000162383949602
+Val Loss: 0.10584165031711261, Perplexity: 1.000005292096519
 
 Epoch 6
-Train Loss: 0.20442143660038709, Perplexity: 1.0000102211240653
-Val Loss: 0.07880841319759686, Perplexity: 1.0000039404284233
+Train Loss: 0.19712667614221574, Perplexity: 1.000009856382381
+Val Loss: 0.09906434267759323, Perplexity: 1.000004953229401
 
 Epoch 7
-Train Loss: 0.14275943171232938, Perplexity: 1.000007137997061
-Val Loss: 0.07908491790294647, Perplexity: 1.0000039542537131
+Train Loss: 0.2064836432226002, Perplexity: 1.0000103242354557
+Val Loss: 0.07645417439440887, Perplexity: 1.0000038227160264
 
-EARLY STOPPING at epoch 7, best epoch 6
-Train Loss = 0.20442143660038709, Perplexity = 1.0000102211240653
-Val Loss = 0.07880841319759686, Perplexity = 1.0000039404284233
-Total Training Time = 00:54
+Epoch 8
+Train Loss: 0.16621256843209267, Perplexity: 1.000008310662955
+Val Loss: 0.08000297099351883, Perplexity: 1.0000040001565502
 
-TRAINING DONE at epoch 7, best epoch 6
-Train Loss = 0.20442143660038709, Perplexity = 1.0000102211240653
-Val Loss = 0.07880841319759686, Perplexity = 1.0000039404284233
-Total Training Time = 00:54
+EARLY STOPPING at epoch 8, best epoch 7
+Train Loss = 0.2064836432226002, Perplexity = 1.0000103242354557
+Val Loss = 0.07645417439440887, Perplexity = 1.0000038227160264
+Total Training Time = 01:02
+
+TRAINING DONE at epoch 8, best epoch 7
+Train Loss = 0.2064836432226002, Perplexity = 1.0000103242354557
+Val Loss = 0.07645417439440887, Perplexity = 1.0000038227160264
+Total Training Time = 01:02
+
+InferOne Unknown
+NB to B ratio: Predicted = 9991:9 | Actual = 9992:8
+Accuracy: 99.93% | Precision: 55.56% | Recall: 62.50% | F1-Score: 0.59
 
 InferOne Unknown
 NB to B ratio: Predicted = 9989:11 | Actual = 9992:8
-Accuracy: 99.93% | Precision: 54.55% | Recall: 75.00% | F1-Score: 0.63
+Accuracy: 99.91% | Precision: 45.45% | Recall: 62.50% | F1-Score: 0.53
 
 InferOne Unknown
-NB to B ratio: Predicted = 9996:4 | Actual = 10000:0
-Accuracy: 99.96% | Precision: 0.00% | Recall: 0.00% | F1-Score: 0.00
-
-InferOne Unknown
-NB to B ratio: Predicted = 9977:23 | Actual = 9988:12
-Accuracy: 99.77% | Precision: 26.09% | Recall: 50.00% | F1-Score: 0.34
+NB to B ratio: Predicted = 9998:2 | Actual = 10000:0
+Accuracy: 99.98% | Precision: 0.00% | Recall: 0.00% | F1-Score: 0.00
 
 InferFull Unknown
-NB to B ratio: Predicted = 399603:397 | Actual = 399266:734
-Accuracy: 99.80% | Precision: 37.10% | Recall: 27.16% | F1-Score: 0.27
+NB to B ratio: Predicted = 399616:384 | Actual = 399266:734
+Accuracy: 99.81% | Precision: 38.57% | Recall: 34.47% | F1-Score: 0.27
 
 InferFull Unknown
-NB to B ratio: Predicted = 49956:44 | Actual = 49913:87
-Accuracy: 99.82% | Precision: 63.02% | Recall: 39.78% | F1-Score: 0.43
+NB to B ratio: Predicted = 49950:50 | Actual = 49913:87
+Accuracy: 99.82% | Precision: 55.04% | Recall: 39.65% | F1-Score: 0.40
 
 InferFull Unknown
-NB to B ratio: Predicted = 49939:61 | Actual = 49868:132
-Accuracy: 99.64% | Precision: 32.86% | Recall: 16.51% | F1-Score: 0.21
+NB to B ratio: Predicted = 49944:56 | Actual = 49868:132
+Accuracy: 99.72% | Precision: 44.26% | Recall: 20.76% | F1-Score: 0.25
