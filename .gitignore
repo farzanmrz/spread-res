@@ -25,6 +25,7 @@ saffu/
 files/saffu/
 saffu_git/
 src/
+old/saffu_loc/
 
 # GSuite files cause issues idk why
 .gdoc
