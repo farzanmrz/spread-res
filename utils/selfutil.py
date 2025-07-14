@@ -1,11 +1,8 @@
 # Import then Class Reset
-import importlib
-
-from classes import Vocab
-
-importlib.reload(Vocab)
+# importlib.reload(Vocab)
 import csv
 import gc
+import importlib
 import os
 import random
 import re
@@ -14,16 +11,19 @@ import warnings
 from collections import Counter
 
 import chardet
-#import gensim.downloader as api
+
+# import gensim.downloader as api
 import numpy as np
 
 # Other imports
 import pandas as pd
 import torch
+
+# from classes.Vocab import Vocab
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
-from classes.Vocab import Vocab
+# from classes import Vocab
 
 
 def set_seed(seed: int):
@@ -205,77 +205,77 @@ def tokenize_pad(cell_value, vocab, pad_length=32):
     return toks_encoded
 
 
-def get_vocab(
-    data_dir="../../data/farzan/train_big/",
-    vocab_size=50000,
-    space=True,
-    case="lower",
-    threads=4,
-):
-    """
-    Collects all .xls, .xlsx, and .csv files from the specified directory,
-    processes each file in parallel, counts occurrences of each token based on the specified case,
-    and trains a Vocab object.
+# def get_vocab(
+#     data_dir="../../data/farzan/train_big/",
+#     vocab_size=50000,
+#     space=True,
+#     case="lower",
+#     threads=4,
+# ):
+#     """
+#     Collects all .xls, .xlsx, and .csv files from the specified directory,
+#     processes each file in parallel, counts occurrences of each token based on the specified case,
+#     and trains a Vocab object.
 
-    Args:
-        data_dir (str): Directory containing the files to be processed.
-        vocab_size (int): Desired vocabulary size. Trains a Vocab object on `vocab_size - 4` most common tokens.
-        case (str): Determines the case for token processing ('lower', 'upper', 'both').
-        threads (int): Determines the level of parallelism for token aggregation.
+#     Args:
+#         data_dir (str): Directory containing the files to be processed.
+#         vocab_size (int): Desired vocabulary size. Trains a Vocab object on `vocab_size - 4` most common tokens.
+#         case (str): Determines the case for token processing ('lower', 'upper', 'both').
+#         threads (int): Determines the level of parallelism for token aggregation.
 
-    Returns:
-        Vocab: A trained Vocab object.
-    """
+#     Returns:
+#         Vocab: A trained Vocab object.
+#     """
 
-    # Get valid and invalid file path lists
-    file_paths, invalid_files = get_fileList(data_dir)
+#     # Get valid and invalid file path lists
+#     file_paths, invalid_files = get_fileList(data_dir)
 
-    # Initialize errant files counter from the length of invalid_files at the start and vocab object
-    init_total_files = len(file_paths) + len(invalid_files)
-    ec = len(invalid_files)
-    vocab = Vocab(target=False, space=space, case=case)
+#     # Initialize errant files counter from the length of invalid_files at the start and vocab object
+#     init_total_files = len(file_paths) + len(invalid_files)
+#     ec = len(invalid_files)
+#     vocab = Vocab(target=False, space=space, case=case)
 
-    # Helper function for token aggregation from a single file
-    def process_file(file_path):
-        try:
-            # Tokenize and count tokens for the file
-            return Counter(
-                [
-                    token
-                    for cell in spreadsheet_to_df(file_path).values.flatten()
-                    if cell is not None
-                    for token in tokenize(cell, space=space, case=case)
-                ]
-            )
-        except Exception:
-            # Increment error count
-            nonlocal ec
-            ec += 1
-            return Counter()  # Return an empty counter for failed files
+#     # Helper function for token aggregation from a single file
+#     def process_file(file_path):
+#         try:
+#             # Tokenize and count tokens for the file
+#             return Counter(
+#                 [
+#                     token
+#                     for cell in spreadsheet_to_df(file_path).values.flatten()
+#                     if cell is not None
+#                     for token in tokenize(cell, space=space, case=case)
+#                 ]
+#             )
+#         except Exception:
+#             # Increment error count
+#             nonlocal ec
+#             ec += 1
+#             return Counter()  # Return an empty counter for failed files
 
-    # Process files in parallel and combine results
-    aggregated_token_counts = sum(
-        Parallel(n_jobs=threads, timeout=99999)(
-            delayed(process_file)(file_path)
-            for file_path in tqdm(file_paths, desc="Getting Vocab")
-        ),
-        Counter(),  # Start with an empty counter
-    )
+#     # Process files in parallel and combine results
+#     aggregated_token_counts = sum(
+#         Parallel(n_jobs=threads, timeout=99999)(
+#             delayed(process_file)(file_path)
+#             for file_path in tqdm(file_paths, desc="Getting Vocab")
+#         ),
+#         Counter(),  # Start with an empty counter
+#     )
 
-    # Train the vocab object
-    vocab.train(
-        [token for token, count in aggregated_token_counts.most_common(vocab_size - 4)]
-        if (vocab_size - 4 < len(aggregated_token_counts))
-        else list(aggregated_token_counts.keys())
-    )
+#     # Train the vocab object
+#     vocab.train(
+#         [token for token, count in aggregated_token_counts.most_common(vocab_size - 4)]
+#         if (vocab_size - 4 < len(aggregated_token_counts))
+#         else list(aggregated_token_counts.keys())
+#     )
 
-    # Print statistics
-    print(f"{init_total_files}(P) = {init_total_files - ec}(G) + {ec}(E)")
-    print(f"Unique Tokens: {len(aggregated_token_counts)}")
-    print(f"Vocab Size: {len(vocab._word2idx)}")
+#     # Print statistics
+#     print(f"{init_total_files}(P) = {init_total_files - ec}(G) + {ec}(E)")
+#     print(f"Unique Tokens: {len(aggregated_token_counts)}")
+#     print(f"Vocab Size: {len(vocab._word2idx)}")
 
-    # Return the trained vocab object
-    return vocab
+#     # Return the trained vocab object
+#     return vocab
 
 
 def spreadsheet_to_df(file_path, max_rows=100, max_cols=100):
@@ -397,45 +397,45 @@ def get_delimencoding(file_path):
     return delimiter, curr_encoding
 
 
-def create_embeddings(vocab, model_name="glove-wiki-gigaword-50"):
-    """
-    Create word vectors using a pre-trained model from gensim.
+# def create_embeddings(vocab, model_name="glove-wiki-gigaword-50"):
+#     """
+#     Create word vectors using a pre-trained model from gensim.
 
-    Parameters:
-    - vocab: The vocabulary object with encode/decode methods.
-    - model_name: The name of the pre-trained model to use. Default is "glove-wiki-gigaword-50".
+#     Parameters:
+#     - vocab: The vocabulary object with encode/decode methods.
+#     - model_name: The name of the pre-trained model to use. Default is "glove-wiki-gigaword-50".
 
-    Returns:
-    - torch.Tensor: A tensor of shape (vocab_size, vocab_dim) containing the word vectors.
-    """
-    # Set the same seed for reproducibility
-    torch.manual_seed(0)
+#     Returns:
+#     - torch.Tensor: A tensor of shape (vocab_size, vocab_dim) containing the word vectors.
+#     """
+#     # Set the same seed for reproducibility
+#     torch.manual_seed(0)
 
-    # Load the pre-trained model
-    model = api.load(model_name)
+#     # Load the pre-trained model
+#     model = api.load(model_name)
 
-    # Determine the dimensions of the word vectors from vocabulary size and vector size of model
-    vocab_size = len(vocab._word2idx)
-    vocab_dim = model.vector_size
+#     # Determine the dimensions of the word vectors from vocabulary size and vector size of model
+#     vocab_size = len(vocab._word2idx)
+#     vocab_dim = model.vector_size
 
-    # Initialize the word vectors as 0s initially
-    word_vectors = torch.zeros(vocab_size, vocab_dim)
+#     # Initialize the word vectors as 0s initially
+#     word_vectors = torch.zeros(vocab_size, vocab_dim)
 
-    # Loop through each word in the vocabulary
-    for ix in tqdm(range(vocab_size), desc="Creating Word Embeddings"):
+#     # Loop through each word in the vocabulary
+#     for ix in tqdm(range(vocab_size), desc="Creating Word Embeddings"):
 
-        # Get the actual word from the vocabulary decoded from its corresponding index
-        word = vocab.decode(ix)
+#         # Get the actual word from the vocabulary decoded from its corresponding index
+#         word = vocab.decode(ix)
 
-        # Use the pre-trained vector if word in model, otherwise initialize randomly
-        word_vectors[ix, :] = (
-            torch.tensor(model[word]) if word in model else torch.randn(vocab_dim)
-        )
+#         # Use the pre-trained vector if word in model, otherwise initialize randomly
+#         word_vectors[ix, :] = (
+#             torch.tensor(model[word]) if word in model else torch.randn(vocab_dim)
+#         )
 
-    # Print statement indicating shape
-    print(f"Word Embeddings Shape: {word_vectors.shape}")
+#     # Print statement indicating shape
+#     print(f"Word Embeddings Shape: {word_vectors.shape}")
 
-    return word_vectors
+#     return word_vectors
 
 
 def oneBatch_check(batch_size, data_loader, device):
